@@ -1,0 +1,100 @@
+name: Deploy to Yandex Cloud
+
+on:
+  push:
+    branches:
+      - prod-release
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Bump version
+        id: bump
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          NEW_VERSION=$(node scripts/bump-version.js)
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          git add package.json
+          git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+          git tag v$NEW_VERSION
+          git push origin prod-release
+          git push origin v$NEW_VERSION
+
+  build-and-deploy:
+    needs: version-bump
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.version-bump.outputs.new_version }}
+
+      - name: Login to Yandex Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: cr.yandex
+          username: json_key
+          password: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            cr.yandex/${{ secrets.YC_REGISTRY_ID }}/quokkaq-frontend:${{ needs.version-bump.outputs.new_version }}
+            cr.yandex/${{ secrets.YC_REGISTRY_ID }}/quokkaq-frontend:latest
+
+      - name: Copy Docker Compose file
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "~/"
+
+      - name: Deploy to VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            export YC_REGISTRY_ID=${{ secrets.YC_REGISTRY_ID }}
+            export VERSION=${{ needs.version-bump.outputs.new_version }}
+            
+            echo "Deploying version $VERSION"
+            
+            # Login to registry on VM (if not already authenticated or using helper)
+            # Assuming the VM is authorized via Service Account or similar, 
+            # otherwise we might need to pass credentials. 
+            # For simplicity, we'll assume the VM has access or we pass the token.
+            # If needed, we can run 'docker login' here using secrets.
+            echo ${{ secrets.YC_SA_JSON_CREDENTIALS }} | docker login --username json_key --password-stdin cr.yandex
+            
+            docker pull cr.yandex/$YC_REGISTRY_ID/quokkaq-frontend:$VERSION
+            
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            
+            # Cleanup old images
+            docker image prune -f
