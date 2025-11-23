@@ -347,7 +347,7 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
 import { useTicketTimer } from '@/lib/ticket-timer';
 
 function TicketListItem({ ticket }: { ticket: any }) {
-  const { background, formatTime, elapsed, maxWaitingTime } = useTicketTimer(ticket.createdAt, ticket.maxWaitingTime);
+  const { background, formatTime, elapsed } = useTicketTimer(ticket.createdAt, ticket.maxWaitingTime);
 
   return (
     <div
