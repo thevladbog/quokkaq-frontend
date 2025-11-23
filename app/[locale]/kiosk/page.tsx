@@ -88,7 +88,7 @@ export default function KioskPage() {
   }
 
   const handleUnitSelect = (unitId: string) => {
-    router.push(`/kiosk/${unitId}`);
+    router.push(`/kiosk/${unitId}` as any);
   };
 
   return (

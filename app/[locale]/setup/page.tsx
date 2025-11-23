@@ -2,19 +2,21 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/src/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { useLogin } from '@/lib/hooks';
 
 export default function SetupPage() {
     const t = useTranslations('setup');
     const router = useRouter();
-    const { login } = useAuth();
+    const { login } = useAuthContext();
+    const loginMutation = useLogin();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -64,9 +66,17 @@ export default function SetupPage() {
 
             // Auto login after successful setup
             try {
-                await login(formData.email, formData.password);
-                router.push('/admin');
+                const response = await loginMutation.mutateAsync({
+                    email: formData.email,
+                    password: formData.password
+                });
+
+                if (response && response.accessToken) {
+                    login(response.accessToken);
+                    router.push('/admin');
+                }
             } catch (loginError) {
+                console.error('Auto-login failed:', loginError);
                 // If auto-login fails, redirect to login page
                 setTimeout(() => {
                     router.push('/login');
@@ -79,6 +89,8 @@ export default function SetupPage() {
             setLoading(false);
         }
     };
+
+
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">

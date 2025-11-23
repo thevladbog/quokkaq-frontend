@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/src/i18n/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { unitsApi, Unit } from '@/lib/api';
 import { Spinner } from '@/components/ui/spinner';
@@ -46,7 +46,7 @@ export default function ScreenPage() {
             <Card
               key={unit.id}
               className="cursor-pointer hover:shadow-lg transition-shadow border-primary/20 hover:border-primary"
-              onClick={() => router.push(`/screen/${unit.id}`)}
+              onClick={() => router.push(`/screen/${unit.id}` as any)}
             >
               <CardHeader>
                 <CardTitle className="text-xl text-center">{unit.name}</CardTitle>

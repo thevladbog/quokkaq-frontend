@@ -12,8 +12,8 @@ services:
       - "traefik.http.routers.quokkaq-frontend.tls.certresolver=letsencrypt"
       - "traefik.http.services.quokkaq-frontend.loadbalancer.server.port=3000"
     networks:
-      - proxy
+      - traefik-public
 
 networks:
-  proxy:
+  traefik-public:
     external: true
