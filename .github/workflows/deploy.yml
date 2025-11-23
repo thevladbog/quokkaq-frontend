@@ -102,6 +102,7 @@ jobs:
           script: |
             export YC_REGISTRY_ID=${{ secrets.YC_REGISTRY_ID }}
             export VERSION=${{ needs.version-bump.outputs.new_version }}
+            export ACME_EMAIL=${{ secrets.ACME_EMAIL }}
             
             echo "Deploying frontend version $VERSION"
             
