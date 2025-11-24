@@ -1,5 +1,8 @@
+'use client';
+
 import { useState } from 'react';
 import { Link } from '@/src/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

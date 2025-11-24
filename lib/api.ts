@@ -92,7 +92,7 @@ const UnitModelSchema = z.object({
   code: z.string(),
   companyId: z.string(),
   timezone: z.string(),
-  config: z.record(z.unknown()).nullable().optional(),
+  config: z.custom<UnitConfig>().nullable().optional(),
   services: z.array(ServiceModelSchema).optional(),
 });
 
@@ -176,6 +176,14 @@ export interface KioskConfig {
   printerPort?: string;
   showHeader?: boolean;
   showFooter?: boolean;
+  isCustomColorsEnabled?: boolean;
+  headerColor?: string;
+  bodyColor?: string;
+  serviceGridColor?: string;
+  logoUrl?: string;
+  printerType?: string;
+  isPrintEnabled?: boolean;
+  feedbackUrl?: string;
 }
 
 export interface UnitConfig {

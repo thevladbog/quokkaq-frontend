@@ -19,12 +19,13 @@ import { toast } from 'sonner';
 import { Lock } from 'lucide-react';
 import { LogoUpload } from '@/components/ui/logo-upload';
 import ThemeToggle from '@/components/ThemeToggle';
+import type { UnitConfig } from '@/lib/api';
 
 interface KioskSettingsSheetProps {
     isOpen: boolean;
     onClose: () => void;
     unitId: string;
-    currentConfig: Record<string, any>;
+    currentConfig?: UnitConfig | null;
     onLock: () => void;
     isLocked: boolean;
     onUnlock: () => void;

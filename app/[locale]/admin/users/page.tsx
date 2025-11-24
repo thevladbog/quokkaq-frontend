@@ -171,7 +171,7 @@ export default function UsersPage() {
 
   // Helper to get translated permission label
   const getPermissionLabel = (permissionId: string) => {
-    // @ts-expect-error - dynamic key access
+
     return t(`users.permissions_list.${permissionId}`) || permissionId;
   };
 
@@ -186,7 +186,7 @@ export default function UsersPage() {
 
     // Regular users see only units where they have UNIT_USERS_MANAGE permission
     const allowedUnitIds = Object.entries(currentUser?.permissions || {})
-      .filter(([perms]) => (perms as string[]).includes('UNIT_USERS_MANAGE'))
+      .filter(([_, perms]) => (perms as string[]).includes('UNIT_USERS_MANAGE'))
       .map(([unitId]) => unitId);
 
     return (units as Unit[]).filter(u => allowedUnitIds.includes(u.id));
