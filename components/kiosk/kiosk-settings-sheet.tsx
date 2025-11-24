@@ -18,7 +18,6 @@ import { useUpdateUnit } from '@/lib/hooks';
 import { toast } from 'sonner';
 import { Lock } from 'lucide-react';
 import { LogoUpload } from '@/components/ui/logo-upload';
-import ThemeToggle from '@/components/ThemeToggle';
 import type { UnitConfig } from '@/lib/api';
 
 interface KioskSettingsSheetProps {
@@ -102,14 +101,6 @@ export function KioskSettingsSheet({ isOpen, onClose, unitId, currentConfig, onL
                             onLogoUploaded={setLogoUrl}
                             onLogoRemoved={() => setLogoUrl('')}
                         />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                            <Label>{t('theme')}</Label>
-                            <p className="text-sm text-muted-foreground">{t('theme_desc')}</p>
-                        </div>
-                        <ThemeToggle />
                     </div>
 
                     {/* ... rest of the component */}

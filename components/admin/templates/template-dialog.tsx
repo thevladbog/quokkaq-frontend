@@ -100,7 +100,7 @@ export default function TemplateDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[700px]">
+            <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
                         {template ? t('edit') : t('create_template')}

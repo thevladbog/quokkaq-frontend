@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, use } from 'react';
+import { useState, useEffect, useMemo, use, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -87,7 +87,7 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
         },
         onError: (error: Error) => {
             console.error('Failed to release counter:', error);
-            toast.error(`Failed to logout: ${error.message}`);
+            toast.error(t('logout_failed', { error: error.message }));
         }
     });
 
@@ -147,30 +147,93 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
         return map;
     }, [waitingTickets, services]);
 
-    // Service Names Cache - derived from services list
+    // Service Names Cache - derived from services list, with full hierarchical path
     const serviceNames = useMemo(() => {
         const names: Record<string, string> = {};
+
+        // Helper to get localized name for a service
+        const getLocalizedName = (service: typeof services[0]) => {
+            return locale === 'ru'
+                ? (service.nameRu || service.nameEn || service.name)
+                : (service.nameEn || service.nameRu || service.name);
+        };
+
+        // Helper to build full path: Parent -> Parent -> Service
+        const buildServicePath = (serviceId: string, visited = new Set<string>()): string => {
+            // Prevent infinite loops
+            if (visited.has(serviceId)) return '';
+            visited.add(serviceId);
+
+            const service = services.find(s => s.id === serviceId);
+            if (!service) return serviceId;
+
+            const currentName = getLocalizedName(service);
+
+            // If no parent, return just the current name
+            if (!service.parentId) {
+                return currentName;
+            }
+
+            // Build parent path recursively
+            const parentPath = buildServicePath(service.parentId, visited);
+
+            // Combine parent path with current name
+            return parentPath ? `${parentPath} → ${currentName}` : currentName;
+        };
+
+        // Build names for all services
         services.forEach(s => {
-            // Return localized name based on locale
-            const localizedName = locale === 'ru'
-                ? (s.nameRu || s.nameEn || s.name)
-                : (s.nameEn || s.nameRu || s.name);
-            names[s.id] = localizedName;
+            names[s.id] = buildServicePath(s.id);
         });
+
         return names;
     }, [services, locale]);
 
-    // Collapsed groups state
+    // Collapsed groups state with smart auto-expand/collapse logic
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+    // Track previous ticket counts to detect when empty groups become non-empty
+    const prevTicketCounts = useRef<Record<string, number>>({});
+
     useEffect(() => {
-        const keys = Object.keys(groupedWaiting);
-        if (keys.length && Object.keys(openGroups).length === 0) {
-            const initial: Record<string, boolean> = {};
-            keys.forEach((k, i) => initial[k] = i === 0); // Open first group by default
-            // Wrap in setTimeout to avoid "setState in useEffect" warning
-            setTimeout(() => setOpenGroups(initial), 0);
+        const newOpenState: Record<string, boolean> = {};
+        const newTicketCounts: Record<string, number> = {};
+
+        Object.entries(groupedWaiting).forEach(([serviceId, ticketsForService]) => {
+            const currentCount = ticketsForService.length;
+            const previousCount = prevTicketCounts.current[serviceId] || 0;
+            newTicketCounts[serviceId] = currentCount;
+
+            const hasTickets = currentCount > 0;
+            const wasEmpty = previousCount === 0;
+            const becameNonEmpty = wasEmpty && hasTickets;
+
+            if (!hasTickets) {
+                // Always collapse empty groups
+                newOpenState[serviceId] = false;
+            } else if (becameNonEmpty) {
+                // Auto-expand when tickets arrive in previously empty group
+                newOpenState[serviceId] = true;
+            } else if (serviceId in openGroups) {
+                // Preserve user's manual toggle state for non-empty groups that were already non-empty
+                newOpenState[serviceId] = openGroups[serviceId];
+            } else {
+                // Default: expand non-empty groups
+                newOpenState[serviceId] = true;
+            }
+        });
+
+        // Update the ref for next comparison
+        prevTicketCounts.current = newTicketCounts;
+
+        // Only update if there are actual changes to avoid unnecessary re-renders
+        const hasChanges = Object.keys(newOpenState).length !== Object.keys(openGroups).length ||
+            Object.entries(newOpenState).some(([key, value]) => openGroups[key] !== value);
+
+        if (hasChanges) {
+            setOpenGroups(newOpenState);
         }
-    }, [groupedWaiting]); // Only run when grouping changes significantly (e.g. new services)
+    }, [groupedWaiting, openGroups]);
 
     // Actions
     const handleCallNext = async () => {
@@ -382,9 +445,9 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
                         {Object.keys(groupedWaiting).length > 0 ? (
                             Object.entries(groupedWaiting).map(([serviceId, ticketsForService]) => (
                                 <div key={serviceId}>
-                                    <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
+                                    <div className="flex items-center justify-between p-2 bg-muted rounded">
                                         <div className="font-medium">
-                                            {serviceId === 'uncategorized' ? t('queue.uncategorized') || 'Other' : (serviceNames[serviceId] || serviceId)}
+                                            {serviceId === 'uncategorized' ? t('queue.uncategorized') : (serviceNames[serviceId] || serviceId)}
                                             <span className="ml-2 text-sm text-muted-foreground">({ticketsForService.length})</span>
                                         </div>
                                         <div>
@@ -395,11 +458,11 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
                                                         createTicketMutation.mutate(serviceId);
                                                     }} disabled={createTicketMutation.isPending}>
                                                         <Plus className="h-4 w-4 mr-1" />
-                                                        {t('actions.createTicket') || 'Create'}
+                                                        {t('actions.createTicket')}
                                                     </Button>
                                                 )}
                                                 <Button size="sm" variant="ghost" onClick={() => setOpenGroups(prev => ({ ...prev, [serviceId]: !prev[serviceId] }))}>
-                                                    {openGroups[serviceId] ? (t('queue.hide') || 'Hide') : (t('queue.show') || 'Show')}
+                                                    {openGroups[serviceId] ? t('queue.hide') : t('queue.show')}
                                                 </Button>
                                             </div>
                                         </div>
@@ -466,7 +529,7 @@ function StaffTicketItem({ ticket, onCall, disabled, t }: { ticket: Ticket, onCa
                     onClick={onCall}
                     disabled={disabled}
                 >
-                    {t('actions.call') || 'Call'}
+                    {t('actions.call')}
                 </Button>
             </div>
         </div>
@@ -543,7 +606,7 @@ function CurrentTicketDisplay({ ticket, t }: { ticket: Ticket, t: (key: string, 
                 {ticket.maxWaitingTime && (
                     <div>
                         <div className="text-xs text-muted-foreground uppercase tracking-wider mb-0.5">
-                            Max
+                            {t('queue.max_label')}
                         </div>
                         <div className="text-sm font-mono text-muted-foreground">
                             {formatStaticTime(ticket.maxWaitingTime)}

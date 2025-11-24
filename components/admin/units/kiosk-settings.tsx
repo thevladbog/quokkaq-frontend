@@ -137,7 +137,7 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
                                             value={headerColor}
                                             onChange={(e) => setHeaderColor(e.target.value)}
                                             className="flex-1"
-                                            placeholder="#ffffff"
+                                            placeholder={t('color_placeholder', { defaultValue: '#ffffff' })}
                                         />
                                     </div>
                                 </div>
@@ -157,7 +157,7 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
                                             value={bodyColor}
                                             onChange={(e) => setBodyColor(e.target.value)}
                                             className="flex-1"
-                                            placeholder="#f3f4f6"
+                                            placeholder={t('color_placeholder', { defaultValue: '#f3f4f6' })}
                                         />
                                     </div>
                                 </div>
@@ -177,7 +177,7 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
                                             value={serviceGridColor}
                                             onChange={(e) => setServiceGridColor(e.target.value)}
                                             className="flex-1"
-                                            placeholder="#ffffff"
+                                            placeholder={t('color_placeholder', { defaultValue: '#ffffff' })}
                                         />
                                     </div>
                                 </div>
@@ -192,7 +192,7 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
                             type="text"
                             value={pin}
                             onChange={(e) => setPin(e.target.value)}
-                            placeholder="1234"
+                            placeholder={t('pin_code_placeholder', { defaultValue: '1234' })}
                             maxLength={6}
                         />
                         <p className="text-xs text-muted-foreground">{t('pin_help')}</p>
@@ -248,7 +248,7 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
                                             id="printer-ip"
                                             value={printerIp}
                                             onChange={(e) => setPrinterIp(e.target.value)}
-                                            placeholder="192.168.1.100"
+                                            placeholder={t('printer_ip_placeholder', { defaultValue: '192.168.1.100' })}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -257,7 +257,7 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
                                             id="printer-port"
                                             value={printerPort}
                                             onChange={(e) => setPrinterPort(e.target.value)}
-                                            placeholder="9100"
+                                            placeholder={t('printer_port_placeholder', { defaultValue: '9100' })}
                                         />
                                     </div>
                                 </div>
@@ -277,8 +277,7 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
                                             variant={printerType === 'label' ? 'default' : 'outline'}
                                             onClick={() => setPrinterType('label')}
                                             className="flex-1"
-                                            type="button"
-                                        >
+                                            type="button">
                                             {t('printer_type_label')}
                                         </Button>
                                     </div>

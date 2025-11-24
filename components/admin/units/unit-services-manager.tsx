@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useUnits,
     useUnitServices,
@@ -13,7 +14,8 @@ import {
     useUpdateService,
     useDeleteService
 } from '@/lib/hooks';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { ImageUpload } from '@/components/ui/image-upload';
 
 interface Service {
     id: string;
@@ -28,10 +30,10 @@ interface Service {
     textColor?: string | null;
     prefix?: string | null;
     numberSequence?: string | null;
-    duration?: number | null; // Maximum service time in minutes
+    duration?: number | null; // Maximum service time in seconds
     maxWaitingTime?: number | null; // Maximum waiting time in seconds
-    prebook: boolean;
-    isLeaf: boolean;
+    prebook?: boolean;
+    isLeaf?: boolean;
     unitId: string;
     parentId?: string | null;
     parent?: Service | null;
@@ -65,7 +67,6 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
         backgroundColor: '',
         textColor: '',
         prefix: '',
-        numberSequence: '',
         duration: undefined,
         maxWaitingTime: undefined,
         prebook: false,
@@ -78,6 +79,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
 
     const t = useTranslations('admin');
     const tRoot = useTranslations();
+    const locale = useLocale();
 
     useEffect(() => {
         if (editingService) {
@@ -92,7 +94,6 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                 backgroundColor: editingService.backgroundColor,
                 textColor: editingService.textColor,
                 prefix: editingService.prefix,
-                numberSequence: editingService.numberSequence,
                 duration: editingService.duration,
                 maxWaitingTime: editingService.maxWaitingTime,
                 prebook: editingService.prebook,
@@ -111,7 +112,6 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                 backgroundColor: '',
                 textColor: '',
                 prefix: '',
-                numberSequence: '',
                 duration: undefined,
                 maxWaitingTime: undefined,
                 prebook: false,
@@ -119,7 +119,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                 parentId: ''
             });
         }
-    }, [editingService, isCreating]);
+    }, [editingService?.id, isCreating]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -150,8 +150,8 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                     id: editingService.id,
                     ...formValues,
                     name: formValues.name || editingService.name,
-                    prebook: formValues.prebook ?? editingService.prebook,
-                    isLeaf: formValues.isLeaf ?? editingService.isLeaf
+                    prebook: formValues.prebook ?? editingService.prebook ?? false,
+                    isLeaf: formValues.isLeaf ?? editingService.isLeaf ?? false
                 });
             } else {
                 if (!formValues.name) return;
@@ -179,7 +179,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
     };
 
     const handleDelete = async (serviceId: string) => {
-        if (confirm('Are you sure you want to delete this service?')) {
+        if (confirm(t('services.delete_confirm', { defaultValue: 'Are you sure you want to delete this service?' }))) {
             try {
                 await deleteServiceMutation.mutateAsync({ id: serviceId });
                 refetch();
@@ -195,6 +195,13 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
     };
 
     const selectedUnit = units.find(unit => unit.id === selectedUnitId);
+
+    const getLocalizedName = (service: Service) => {
+        if (locale === 'ru' && service.nameRu) {
+            return service.nameRu;
+        }
+        return service.name;
+    };
 
     return (
         <div className="container mx-auto p-4">
@@ -228,7 +235,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                 {servicesLoading ? (
                                     <TableRow>
                                         <TableCell colSpan={5} className="text-center">
-                                            Loading services...
+                                            {t('services.loading', { defaultValue: 'Loading services...' })}
                                         </TableCell>
                                     </TableRow>
                                 ) : services.length === 0 ? (
@@ -240,10 +247,14 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                 ) : (
                                     services.map((service) => (
                                         <TableRow key={service.id}>
-                                            <TableCell className="font-medium">{service.name}</TableCell>
+                                            <TableCell className="font-medium">{getLocalizedName(service)}</TableCell>
                                             <TableCell>{service.prefix || '-'}</TableCell>
-                                            <TableCell>{service.duration ? `${service.duration} min` : '-'}</TableCell>
-                                            <TableCell>{service.isLeaf ? 'Yes' : 'No'}</TableCell>
+                                            <TableCell>
+                                                {service.duration
+                                                    ? `${Math.floor(service.duration / 60)}m ${service.duration % 60}s`
+                                                    : '-'}
+                                            </TableCell>
+                                            <TableCell>{service.isLeaf ? tRoot('general.yes') : tRoot('general.no')}</TableCell>
                                             <TableCell>
                                                 <div className="flex space-x-2">
                                                     <Button
@@ -309,16 +320,6 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="nameEn">{tRoot('forms.fields.name_en')}</Label>
-                                    <Input
-                                        id="nameEn"
-                                        name="nameEn"
-                                        value={formValues.nameEn || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
                                     <Label htmlFor="description">{tRoot('forms.fields.desc_en')}</Label>
                                     <Input
                                         id="description"
@@ -339,23 +340,11 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="descriptionEn">{tRoot('forms.fields.desc_en_short')}</Label>
-                                    <Input
-                                        id="descriptionEn"
-                                        name="descriptionEn"
-                                        value={formValues.descriptionEn || ''}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="imageUrl">{tRoot('forms.fields.image_url')}</Label>
-                                    <Input
-                                        id="imageUrl"
-                                        name="imageUrl"
-                                        type="url"
-                                        value={formValues.imageUrl || ''}
-                                        onChange={handleInputChange}
+                                    <ImageUpload
+                                        label={tRoot('forms.fields.image_url')}
+                                        value={formValues.imageUrl}
+                                        onChange={(url) => setFormValues(prev => ({ ...prev, imageUrl: url }))}
+                                        onRemove={() => setFormValues(prev => ({ ...prev, imageUrl: '' }))}
                                     />
                                 </div>
 
@@ -366,7 +355,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                             id="backgroundColor"
                                             name="backgroundColor"
                                             type="color"
-                                            value={formValues.backgroundColor || ''}
+                                            value={formValues.backgroundColor || '#000000'}
                                             onChange={handleInputChange}
                                         />
                                     </div>
@@ -377,71 +366,95 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                             id="textColor"
                                             name="textColor"
                                             type="color"
-                                            value={formValues.textColor || ''}
+                                            value={formValues.textColor || '#000000'}
                                             onChange={handleInputChange}
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="prefix">{tRoot('forms.fields.prefix')}</Label>
-                                        <Input
-                                            id="prefix"
-                                            name="prefix"
-                                            value={formValues.prefix || ''}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="numberSequence">{tRoot('forms.fields.number_sequence')}</Label>
-                                        <Input
-                                            id="numberSequence"
-                                            name="numberSequence"
-                                            value={formValues.numberSequence || ''}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="prefix">{tRoot('forms.fields.prefix')}</Label>
+                                    <Input
+                                        id="prefix"
+                                        name="prefix"
+                                        value={formValues.prefix || ''}
+                                        onChange={handleInputChange}
+                                    />
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="parentId">{tRoot('forms.fields.parent_service')}</Label>
-                                    <select
-                                        id="parentId"
-                                        name="parentId"
-                                        value={formValues.parentId || ''}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border rounded"
+                                    <Select
+                                        value={formValues.parentId || 'none'}
+                                        onValueChange={(value) => setFormValues(prev => ({ ...prev, parentId: value === 'none' ? '' : value }))}
                                     >
-                                        <option value="">{tRoot('forms.fields.no_parent')}</option>
-                                        {services
-                                            .filter(s => s.id !== editingService?.id) // Don't show current service as option
-                                            .map(service => (
-                                                <option key={service.id} value={service.id}>
-                                                    {service.name} {service.parentId ? `(child of ${services.find(s => s.id === service.parentId)?.name})` : ''}
-                                                </option>
-                                            ))}
-                                    </select>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={tRoot('forms.fields.no_parent')} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">{tRoot('forms.fields.no_parent')}</SelectItem>
+                                            {services
+                                                .filter(s => s.id !== editingService?.id && !s.isLeaf) // Don't show current service as option
+                                                .map(service => (
+                                                    <SelectItem key={service.id} value={service.id}>
+                                                        {service.name} {service.parentId ? `(${tRoot('forms.fields.child_of', { defaultValue: 'child of' })} ${services.find(s => s.id === service.parentId)?.name})` : ''}
+                                                    </SelectItem>
+                                                ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="duration">{tRoot('forms.fields.max_duration')}</Label>
-                                    <Input
-                                        id="duration"
-                                        name="duration"
-                                        type="number"
-                                        min="1"
-                                        value={formValues.duration || ''}
-                                        onChange={handleNumberInputChange}
-                                    />
+                                    <div className="flex gap-2 items-end">
+                                        <div className="flex-1">
+                                            <Label htmlFor="duration_minutes" className="text-xs text-muted-foreground">{tRoot('forms.fields.minutes', { defaultValue: 'Minutes' })}</Label>
+                                            <Input
+                                                id="duration_minutes"
+                                                type="number"
+                                                min="0"
+                                                value={formValues.duration ? Math.floor((formValues.duration || 0) / 60) : 0}
+                                                onChange={(e) => {
+                                                    const mins = parseInt(e.target.value) || 0;
+                                                    const secs = (formValues.duration || 0) % 60;
+                                                    setFormValues(prev => ({ ...prev, duration: (mins * 60) + secs }));
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <Label htmlFor="duration_seconds" className="text-xs text-muted-foreground">{tRoot('forms.fields.seconds', { defaultValue: 'Seconds' })}</Label>
+                                            <Input
+                                                id="duration_seconds"
+                                                type="number"
+                                                min="0"
+                                                max="59"
+                                                value={formValues.duration ? (formValues.duration || 0) % 60 : 0}
+                                                onChange={(e) => {
+                                                    const secs = parseInt(e.target.value) || 0;
+                                                    const mins = Math.floor((formValues.duration || 0) / 60);
+                                                    setFormValues(prev => ({ ...prev, duration: (mins * 60) + secs }));
+                                                }}
+                                            />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => setFormValues(prev => ({ ...prev, duration: undefined }))}
+                                            disabled={formValues.duration === undefined || formValues.duration === 0}
+                                        >
+                                            {tRoot('general.clear', { defaultValue: 'Clear' })}
+                                        </Button>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        {tRoot('forms.fields.total', { defaultValue: 'Total' })}: {formValues.duration || 0} {tRoot('forms.fields.seconds', { defaultValue: 'seconds' })}
+                                    </p>
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="maxWaitingTime">{tRoot('forms.fields.max_waiting_time')}</Label>
                                     <div className="flex gap-2 items-end">
                                         <div className="flex-1">
-                                            <Label htmlFor="mwt_minutes" className="text-xs text-muted-foreground">Minutes</Label>
+                                            <Label htmlFor="mwt_minutes" className="text-xs text-muted-foreground">{tRoot('forms.fields.minutes', { defaultValue: 'Minutes' })}</Label>
                                             <Input
                                                 id="mwt_minutes"
                                                 type="number"
@@ -455,7 +468,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                             />
                                         </div>
                                         <div className="flex-1">
-                                            <Label htmlFor="mwt_seconds" className="text-xs text-muted-foreground">Seconds</Label>
+                                            <Label htmlFor="mwt_seconds" className="text-xs text-muted-foreground">{tRoot('forms.fields.seconds', { defaultValue: 'Seconds' })}</Label>
                                             <Input
                                                 id="mwt_seconds"
                                                 type="number"
@@ -475,11 +488,11 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                             onClick={() => setFormValues(prev => ({ ...prev, maxWaitingTime: undefined }))}
                                             disabled={formValues.maxWaitingTime === undefined || formValues.maxWaitingTime === 0}
                                         >
-                                            Clear
+                                            {tRoot('general.clear', { defaultValue: 'Clear' })}
                                         </Button>
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                        Total: {formValues.maxWaitingTime || 0} seconds
+                                        {tRoot('forms.fields.total', { defaultValue: 'Total' })}: {formValues.maxWaitingTime || 0} {tRoot('forms.fields.seconds', { defaultValue: 'seconds' })}
                                     </p>
                                 </div>
 
