@@ -2,11 +2,14 @@
 
 import { useState } from 'react';
 import { useUnits, useCreateUnit } from '@/lib/hooks';
+import PermissionGuard from '@/components/auth/permission-guard';
+import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuthContext } from '@/contexts/AuthContext';
 import {
     Dialog,
     DialogContent,
@@ -14,33 +17,32 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
 import { useRouter } from '@/src/i18n/navigation';
-import PermissionGuard from '@/components/auth/permission-guard';
-import { Plus } from 'lucide-react';
 
 export default function UnitsIndexPage() {
     const { data: units = [], isLoading, error } = useUnits();
     const createUnitMutation = useCreateUnit();
     const t = useTranslations('admin');
     const router = useRouter();
+    const { user } = useAuthContext();
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [newUnitName, setNewUnitName] = useState('');
     const [newUnitCode, setNewUnitCode] = useState('');
-    const [newUnitCompanyId, setNewUnitCompanyId] = useState(''); // Assuming companyId is needed or we can default/omit
 
     const handleCreateUnit = async () => {
+        // Try to get companyId from user's existing units
+        const companyId = user?.units?.[0]?.unit?.companyId || '';
+
         try {
             await createUnitMutation.mutateAsync({
                 name: newUnitName,
                 code: newUnitCode,
-                companyId: newUnitCompanyId || 'default-company-id' // Placeholder or required field
+                companyId: companyId
             });
             setCreateDialogOpen(false);
             setNewUnitName('');
             setNewUnitCode('');
-            setNewUnitCompanyId('');
         } catch (error) {
             console.error('Failed to create unit:', error);
         }
@@ -48,10 +50,6 @@ export default function UnitsIndexPage() {
 
     if (isLoading) {
         return <div className="container mx-auto p-4">{t('units.loading')}</div>;
-    }
-
-    if (error) {
-        return <div className="container mx-auto p-4">{t('units.error_loading')}</div>;
     }
 
     return (

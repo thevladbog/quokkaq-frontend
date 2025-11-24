@@ -11,7 +11,7 @@ import { useRouter } from '@/src/i18n/navigation';
 export default function AdminPage() {
   const { data: units = [], isLoading: unitsLoading, error: unitsError } = useUnits();
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
-  const { data: unitServices = [], isLoading: servicesLoading, error: servicesError } = useUnitServices(selectedUnitId || '');
+  useUnitServices(selectedUnitId || ''); // unitServices, servicesLoading, servicesError are unused
   const router = useRouter();
 
   const t = useTranslations('admin');

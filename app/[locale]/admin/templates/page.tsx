@@ -94,7 +94,7 @@ export default function TemplatesPage() {
             } else {
                 toast.error(t('error_saving'));
             }
-        } catch (error) {
+        } catch {
             toast.error(t('error_saving'));
         } finally {
             setDeleteDialogOpen(false);

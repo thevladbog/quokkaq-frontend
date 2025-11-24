@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Ticket, ticketsApi, unitsApi, Unit } from '@/lib/api';
+import { Ticket, ticketsApi, unitsApi, Unit, Material, UnitConfig } from '@/lib/api';
 import { useUnit } from '@/lib/hooks';
 import { socketClient } from '@/lib/socket';
 import { AdsPanel } from '@/components/screen/ads-panel';
@@ -19,11 +19,10 @@ interface ScreenUnitClientProps {
 export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
     const t = useTranslations('screen');
 
-    // const [unit, setUnit] = useState<Unit | null>(null); // Removed in favor of useUnit hook
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentTime, setCurrentTime] = useState(new Date());
-    const [materials, setMaterials] = useState<any[]>([]);
+    const [materials, setMaterials] = useState<Material[]>([]);
 
     // State for call notification
     const [lastCalledTicket, setLastCalledTicket] = useState<Ticket | null>(null);
@@ -56,25 +55,13 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
 
         socketClient.connect(unitId);
 
-        const handleTicketUpdate = (data: any) => {
-            // For simplicity, we can just re-fetch tickets on any update
-            // Or we could optimistically update the state if the payload contains the ticket
-            // Given the logic below relies on sorting and filtering, re-fetching is safer and easier
-            // unless performance becomes an issue.
-            // However, to be truly "real-time" and avoid race conditions with fetch, 
-            // let's try to use the data if available, or just fetch.
-            // The previous implementation just re-fetched. Let's stick to that for consistency with Staff Panel.
+        const handleTicketUpdate = (_data: unknown) => {
             fetchTickets();
-
-            // If it's a "called" event, we might want to trigger the notification immediately
-            // The existing logic inside fetchTickets handles this by comparing with lastCalledTicket
-            // So re-fetching is fine.
         };
 
         socketClient.onTicketCreated(handleTicketUpdate);
         socketClient.onTicketUpdated(handleTicketUpdate);
         socketClient.onTicketCalled(handleTicketUpdate);
-        // socketClient.onQueueSnapshot(handleQueueSnapshot); // If backend sends snapshots
 
         return () => {
             socketClient.off('ticket.created', handleTicketUpdate);
@@ -92,15 +79,11 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
             try {
                 const allMaterials = await unitsApi.getMaterials(unitId);
                 if (isMounted && unit) {
-                    const adConfig = (unit.config as any)?.adScreen;
+                    const config = unit.config as UnitConfig;
+                    const adConfig = config?.adScreen;
                     const activeIds = adConfig?.activeMaterialIds || [];
 
-                    // Filter materials if activeIds is defined and not empty
-                    // If activeIds is empty/undefined, maybe show none? Or all?
-                    // Usually "active" implies selection. If none selected, show none.
-                    // But let's check if activeIds exists.
-
-                    const filtered = allMaterials.filter((m: any) => activeIds.includes(m.id));
+                    const filtered = allMaterials.filter((m: Material) => activeIds.includes(m.id));
                     setMaterials(filtered);
                 }
             } catch (error) {
@@ -112,11 +95,6 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
             fetchMaterials();
         }
 
-        // Poll materials every minute to keep in sync with active/inactive changes if needed, 
-        // or just rely on unit config changes triggering re-fetch if we add unit to dependency.
-        // But unit config change comes from useUnit polling.
-        // If unit changes, we should re-filter.
-        // If materials change (uploaded/deleted), we might need to poll materials too.
         const interval = setInterval(fetchMaterials, 60000);
         return () => {
             isMounted = false;
@@ -162,7 +140,8 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
         .filter(t => t.status === 'waiting')
         .sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
 
-    const adConfig = (unit.config as any)?.adScreen;
+    const config = unit.config as UnitConfig;
+    const adConfig = config?.adScreen;
     const showAds = adConfig && adConfig.width > 0 && materials.length > 0;
     const adWidth = adConfig?.width || 0;
     const tableWidth = 100 - adWidth;
@@ -177,10 +156,10 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
             {/* Top Bar: Unit Name + Date/Time */}
             <div className="flex-none h-20 bg-card border-b flex items-center justify-between px-8 shadow-sm z-10" style={{ backgroundColor: headerColor || undefined }}>
                 <div className="flex items-center gap-4">
-                    {((unit.config as any)?.adScreen?.logoUrl || (unit.config as any)?.logoUrl) && (
+                    {(config?.adScreen?.logoUrl || config?.logoUrl) && (
                         <div className="relative h-12 md:h-16 w-auto">
                             <img
-                                src={(unit.config as any)?.adScreen?.logoUrl || (unit.config as any)?.logoUrl}
+                                src={config?.adScreen?.logoUrl || config?.logoUrl}
                                 alt="Logo"
                                 className="h-full w-auto object-contain"
                             />

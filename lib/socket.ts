@@ -12,7 +12,7 @@ export interface QueueSnapshot {
   tickets: Ticket[];
 }
 
-type Listener = (data: any) => void;
+type Listener = (data: unknown) => void;
 
 class SocketClient {
   private socket: WebSocket | null = null;
@@ -108,7 +108,7 @@ class SocketClient {
     }
   }
 
-  private dispatch(event: string, data: any) {
+  private dispatch(event: string, data: unknown) {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
       callbacks.forEach(callback => callback(data));
@@ -133,23 +133,23 @@ class SocketClient {
 
   // Specific typed helpers matching previous interface
   onTicketCreated(callback: (data: TicketUpdate) => void) {
-    this.on('ticket.created', callback);
+    this.on('ticket.created', (data) => callback(data as TicketUpdate));
   }
 
   onTicketUpdated(callback: (data: TicketUpdate) => void) {
-    this.on('ticket.updated', callback);
+    this.on('ticket.updated', (data) => callback(data as TicketUpdate));
   }
 
   onTicketCalled(callback: (data: TicketUpdate) => void) {
-    this.on('ticket.called', callback);
+    this.on('ticket.called', (data) => callback(data as TicketUpdate));
   }
 
   onQueueSnapshot(callback: (data: QueueSnapshot) => void) {
-    this.on('queue.snapshot', callback);
+    this.on('queue.snapshot', (data) => callback(data as QueueSnapshot));
   }
 
   onSystemAlert(callback: (data: { message: string; severity: string }) => void) {
-    this.on('system.alert', callback);
+    this.on('system.alert', (data) => callback(data as { message: string; severity: string }));
   }
 
   // Emit events - Backend currently doesn't handle these, but keeping for compatibility

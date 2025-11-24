@@ -26,6 +26,9 @@ const UserModelSchema = z.object({
   units: z.array(z.object({
     unitId: z.string(),
     permissions: z.array(z.string()).optional().default([]),
+    unit: z.object({
+      companyId: z.string(),
+    }).optional(),
   })).optional(),
 });
 
@@ -89,7 +92,7 @@ const UnitModelSchema = z.object({
   code: z.string(),
   companyId: z.string(),
   timezone: z.string(),
-  config: z.any().nullable().optional(),
+  config: z.record(z.unknown()).nullable().optional(),
   services: z.array(ServiceModelSchema).optional(),
 });
 
@@ -138,6 +141,14 @@ export type Ticket = z.infer<typeof TicketModelSchema>;
 export type Booking = z.infer<typeof BookingModelSchema>;
 export type Counter = z.infer<typeof CounterModelSchema>;
 
+export type Material = {
+  id: string;
+  type: string;
+  url: string;
+  filename: string;
+  createdAt: string;
+};
+
 export type LoginCredentials = {
   email: string;
   password: string;
@@ -147,6 +158,33 @@ export type LoginResponse = {
   accessToken: string;
 };
 
+export interface AdScreenConfig {
+  width: number;
+  duration: number;
+  activeMaterialIds: string[];
+  logoUrl?: string;
+  isCustomColorsEnabled?: boolean;
+  headerColor?: string;
+  bodyColor?: string;
+}
+
+export interface KioskConfig {
+  pin?: string;
+  headerText?: string;
+  footerText?: string;
+  printerIp?: string;
+  printerPort?: string;
+  showHeader?: boolean;
+  showFooter?: boolean;
+}
+
+export interface UnitConfig {
+  adScreen?: AdScreenConfig;
+  kiosk?: KioskConfig;
+  logoUrl?: string;
+  [key: string]: unknown;
+}
+
 // Base API configuration
 const API_BASE_URL = '/api';
 
@@ -154,7 +192,7 @@ const API_BASE_URL = '/api';
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
-  schema?: z.ZodSchema<T>
+  schema?: z.ZodType<T, z.ZodTypeDef, unknown>
 ): Promise<T> {
   let token = null;
   let refreshToken = null;
@@ -285,10 +323,10 @@ export const authApi = {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
-    }, UserModelSchema as any),
+    }, UserModelSchema),
 
   getMe: () =>
-    apiRequest<User>('/auth/me', {}, UserModelSchema as any),
+    apiRequest<User>('/auth/me', {}, UserModelSchema),
 
   refresh: (refreshToken: string) =>
     apiRequest<{ accessToken: string }>('/auth/refresh', {
@@ -303,17 +341,17 @@ export const authApi = {
 export const usersApi = {
   getAll: (search?: string) => {
     const queryParams = search ? `?search=${encodeURIComponent(search)}` : '';
-    return apiRequest<User[]>(`/users${queryParams}`, {}, z.array(UserModelSchema) as any);
+    return apiRequest<User[]>(`/users${queryParams}`, {}, z.array(UserModelSchema));
   },
 
   getById: (id: string) =>
-    apiRequest<User>(`/users/${id}`, {}, UserModelSchema as any),
+    apiRequest<User>(`/users/${id}`, {}, UserModelSchema),
 
   create: (userData: { name: string; email?: string; password?: string }) =>
     apiRequest<User>('/users', {
       method: 'POST',
       body: JSON.stringify(userData),
-    }, UserModelSchema as any),
+    }, UserModelSchema),
 
   getUserUnits: (userId: string) =>
     apiRequest<unknown[]>(`/users/${userId}/units`, {}),
@@ -340,7 +378,7 @@ export const usersApi = {
     apiRequest<User>(`/users/${userId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
-    }, UserModelSchema as any),
+    }, UserModelSchema),
 };
 
 // Unit API functions
@@ -403,16 +441,10 @@ export const unitsApi = {
   },
 
   getMaterials: (unitId: string) =>
-    apiRequest<Array<{
-      id: string;
-      type: string;
-      url: string;
-      filename: string;
-      createdAt: string;
-    }>>(`/units/${unitId}/materials`, {}),
+    apiRequest<Material[]>(`/units/${unitId}/materials`, {}),
 
   deleteMaterial: (unitId: string, materialId: string) =>
-    apiRequest<any>(`/units/${unitId}/materials/${materialId}`, {
+    apiRequest<unknown>(`/units/${unitId}/materials/${materialId}`, {
       method: 'DELETE',
     }),
 
@@ -508,20 +540,20 @@ export const servicesApi = {
   getByUnitId: (unitId: string) =>
     apiRequest<Service[]>(`/services/unit/${unitId}`, {}, z.array(ServiceModelSchema)),
 
-  create: (serviceData: any) =>
+  create: (serviceData: Omit<Service, 'id'>) =>
     apiRequest<Service>('/services', {
       method: 'POST',
       body: JSON.stringify(serviceData),
     }, ServiceModelSchema),
 
-  update: (id: string, serviceData: any) =>
+  update: (id: string, serviceData: Partial<Service>) =>
     apiRequest<Service>(`/services/${id}`, {
       method: 'PUT',
       body: JSON.stringify(serviceData),
     }, ServiceModelSchema),
 
   delete: (id: string) =>
-    apiRequest<any>(`/services/${id}`, {
+    apiRequest<unknown>(`/services/${id}`, {
       method: 'DELETE',
     }),
 };
@@ -550,7 +582,7 @@ export const countersApi = {
     }, CounterModelSchema),
 
   delete: (id: string) =>
-    apiRequest<any>(`/counters/${id}`, {
+    apiRequest<unknown>(`/counters/${id}`, {
       method: 'DELETE',
     }),
 

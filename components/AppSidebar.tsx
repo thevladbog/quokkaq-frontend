@@ -92,7 +92,7 @@ const AppSidebar = () => {
   // Helper to check if user has specific permission in ANY unit
   const hasPermissionInAnyUnit = (permission: string) => {
     if (!user?.permissions) return false;
-    return Object.values(user.permissions).some((perms: any) => perms.includes(permission));
+    return (Object.values(user.permissions) as string[][]).some((perms: string[]) => perms.includes(permission));
   };
 
   // Filter navigation items based on user roles and permissions
@@ -136,7 +136,6 @@ const AppSidebar = () => {
     const hasRole = !item.roles || user?.roles?.some((role: string) => item.roles?.includes(role));
 
     // Check permissions if defined
-    // @ts-ignore
     const hasPermission = item.requiredPermission ? hasPermissionInAnyUnit(item.requiredPermission) : false;
 
     return hasRole || hasPermission;

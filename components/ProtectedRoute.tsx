@@ -44,7 +44,7 @@ export default function ProtectedRoute({
       if (!hasRole) {
         if (requiredPermission && user.permissions) {
           // Check if user has the permission in ANY unit
-          const hasPermission = Object.values(user.permissions).some((perms: any) => perms.includes(requiredPermission));
+          const hasPermission = (Object.values(user.permissions) as string[][]).some((perms: string[]) => perms.includes(requiredPermission));
           if (!hasPermission) {
             hasAccess = false;
           }
@@ -56,7 +56,7 @@ export default function ProtectedRoute({
     } else if (requiredPermission) {
       // Only permission specified
       if (user.permissions) {
-        const hasPermission = Object.values(user.permissions).some((perms: any) => perms.includes(requiredPermission));
+        const hasPermission = (Object.values(user.permissions) as string[][]).some((perms: string[]) => perms.includes(requiredPermission));
         if (!hasPermission) {
           hasAccess = false;
         }

@@ -23,7 +23,7 @@ import { LockScreen } from '@/components/kiosk/lock-screen';
 
 export default function UnitKioskPage() {
   const params = useParams() as { unitId?: string };
-  const [unitId, setUnitId] = useState<string | null>(params.unitId || null);
+  const unitId = params.unitId;
   const [selectedServicePath, setSelectedServicePath] = useState<Service[]>([]);
   const [message, setMessage] = useState('');
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
@@ -35,15 +35,12 @@ export default function UnitKioskPage() {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations('kiosk');
-  const [baseAppUrl, setBaseAppUrl] = useState(
-    (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '')
-  );
-
-  useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_APP_URL && typeof window !== 'undefined') {
-      setBaseAppUrl(window.location.origin);
+  const [baseAppUrl] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
     }
-  }, []);
+    return (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '');
+  });
 
   const { data: unit } = useUnit(unitId!, { refetchInterval: 120000 }); // Poll every 2 minutes
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
@@ -69,13 +66,6 @@ export default function UnitKioskPage() {
     // Reset clicks if not continued quickly
     setTimeout(() => setClockClicks(0), 2000);
   };
-
-  // Keep unitId in sync with route params (useParams-based)
-  useEffect(() => {
-    if (params?.unitId) {
-      setUnitId(params.unitId);
-    }
-  }, [params]);
 
   // Update time every second
   useEffect(() => {

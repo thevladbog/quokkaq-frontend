@@ -8,10 +8,7 @@ import {
   countersApi,
   authApi,
   servicesApi,
-  User,
   Unit,
-  Ticket,
-  Booking,
   Service
 } from '../lib/api';
 
@@ -318,7 +315,6 @@ export const useCallNextTicket = () => {
 
 // Auth-related hooks
 export const useLogin = () => {
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
@@ -354,14 +350,15 @@ export const useAuth = () => {
 
 
 // Helper function to remove empty values (undefined, null, or empty strings)
-const filterEmptyValues = <T extends Record<string, any>>(obj: T): Partial<T> => {
+const filterEmptyValues = <T extends Record<string, unknown>>(obj: T): Partial<T> => {
   const filtered: Partial<T> = {};
 
   Object.keys(obj).forEach(key => {
-    const value = obj[key];
+    const k = key as keyof T;
+    const value = obj[k];
     // Only include values that are not null, undefined, or empty strings
     if (value !== null && value !== undefined && value !== '') {
-      filtered[key as keyof T] = value;
+      filtered[k] = value;
     }
   });
 
@@ -375,7 +372,7 @@ export const useCreateService = () => {
   return useMutation({
     mutationFn: (serviceData: Omit<Service, 'id'>) => {
       const filteredData = filterEmptyValues(serviceData);
-      return servicesApi.create(filteredData);
+      return servicesApi.create(filteredData as Omit<Service, 'id'>);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });

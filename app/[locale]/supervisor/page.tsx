@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { unitsApi } from '@/lib/api';
+import { unitsApi, Unit } from '@/lib/api';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/src/i18n/navigation';
@@ -12,7 +12,7 @@ import ProtectedSidebarLayout from '@/components/ProtectedSidebarLayout';
 
 export default function SupervisorSelectionPage() {
     const { user, isLoading: authLoading } = useAuthContext();
-    const [userUnits, setUserUnits] = useState<any[]>([]);
+    const [userUnits, setUserUnits] = useState<{ unitId: string; unit: Unit }[]>([]);
     const [unitsLoading, setUnitsLoading] = useState(false);
     const t = useTranslations('supervisor');
     const router = useRouter();
@@ -23,8 +23,8 @@ export default function SupervisorSelectionPage() {
             setUnitsLoading(true);
             try {
                 if (user?.units && user.units.length > 0) {
-                    const data = await Promise.all(user.units.map((u: any) => unitsApi.getById(u.unitId)));
-                    const normalized = data.map((u: any) => ({ unitId: u.id, unit: u }));
+                    const data = await Promise.all(user.units.map((u: { unitId: string }) => unitsApi.getById(u.unitId)));
+                    const normalized = data.map((u) => ({ unitId: u.id, unit: u }));
                     setUserUnits(normalized);
                 } else {
                     setUserUnits([]);
@@ -63,7 +63,7 @@ export default function SupervisorSelectionPage() {
                             <CardDescription>{t('selectUnitDescription')}</CardDescription>
                         </CardHeader>
                         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {userUnits.map((uu: any) => (
+                            {userUnits.map((uu) => (
                                 <Button
                                     key={uu.unitId}
                                     onClick={() => router.push(`/supervisor/${uu.unitId}`)}
