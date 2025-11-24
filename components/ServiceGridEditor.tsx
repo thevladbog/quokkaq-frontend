@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect, useMemo, useCallback } from 'react';
 import { Service, Unit, servicesApi, unitsApi } from '@/lib/api';
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -263,7 +263,7 @@ const GridServiceOverlay: React.FC<{
           className="absolute top-0 right-0 cursor-pointer hover:opacity-80 flex items-center justify-center w-6 h-6 z-[50] m-1"
           style={{ pointerEvents: 'auto' }} // Ensure it receives pointer events
           onClick={handleRemoveService}
-          title="Remove from grid"
+          title={service.t?.('grid_configuration.remove_from_grid') || 'Remove from grid'}
         >
           <XSmallIcon size={14} color={service.textColor || '#1e293b'} />
         </div>
@@ -611,16 +611,19 @@ const ServiceGridWithTabs: React.FC<{
   const [mainGridDimensions, setMainGridDimensions] = useState({ width: 60, height: 60 });
   const [childGridDimensions, setChildGridDimensions] = useState<{ [key: string]: { width: number, height: number } }>({});
 
-  const handleMainGridResize = (width: number, height: number) => {
-    setMainGridDimensions({ width, height });
-  };
+  const handleMainGridResize = useCallback((width: number, height: number) => {
+    setMainGridDimensions(prev => {
+      if (prev.width === width && prev.height === height) return prev;
+      return { width, height };
+    });
+  }, []);
 
-  const handleChildGridResize = (parentId: string, width: number, height: number) => {
+  const handleChildGridResize = useCallback((parentId: string, width: number, height: number) => {
     setChildGridDimensions(prev => {
       if (prev[parentId]?.width === width && prev[parentId]?.height === height) return prev;
       return { ...prev, [parentId]: { width, height } };
     });
-  };
+  }, []);
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

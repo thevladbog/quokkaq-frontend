@@ -210,7 +210,7 @@ export default function InviteDialog({ open, onOpenChange, onSuccess }: InviteDi
 
                     {/* Roles Selection */}
                     <div>
-                        <Label className="mb-2 block">Roles</Label>
+                        <Label className="mb-2 block">{t('roles', { defaultValue: 'Roles' })}</Label>
                         <div className="flex flex-wrap gap-4">
                             {AVAILABLE_ROLES.map(role => (
                                 <div key={role} className="flex items-center space-x-2">
@@ -230,7 +230,7 @@ export default function InviteDialog({ open, onOpenChange, onSuccess }: InviteDi
                     {/* Units Selection */}
                     {units && units.length > 0 && (
                         <div>
-                            <Label className="mb-2 block">Units & Permissions</Label>
+                            <Label className="mb-2 block">{t('units_and_permissions', { defaultValue: 'Units & Permissions' })}</Label>
                             <div className="border p-4 rounded-md max-h-60 overflow-y-auto space-y-4">
                                 {units.map((unit: any) => (
                                     <div key={unit.id} className="space-y-2">

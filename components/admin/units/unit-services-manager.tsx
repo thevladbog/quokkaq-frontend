@@ -179,7 +179,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
     };
 
     const handleDelete = async (serviceId: string) => {
-        if (confirm('Are you sure you want to delete this service?')) {
+        if (confirm(t('services.delete_confirm', { defaultValue: 'Are you sure you want to delete this service?' }))) {
             try {
                 await deleteServiceMutation.mutateAsync({ id: serviceId });
                 refetch();
@@ -235,7 +235,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                 {servicesLoading ? (
                                     <TableRow>
                                         <TableCell colSpan={5} className="text-center">
-                                            Loading services...
+                                            {t('services.loading', { defaultValue: 'Loading services...' })}
                                         </TableCell>
                                     </TableRow>
                                 ) : services.length === 0 ? (
@@ -254,7 +254,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                                     ? `${Math.floor(service.duration / 60)}m ${service.duration % 60}s`
                                                     : '-'}
                                             </TableCell>
-                                            <TableCell>{service.isLeaf ? 'Yes' : 'No'}</TableCell>
+                                            <TableCell>{service.isLeaf ? tRoot('general.yes') : tRoot('general.no')}</TableCell>
                                             <TableCell>
                                                 <div className="flex space-x-2">
                                                     <Button
@@ -397,7 +397,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                                 .filter(s => s.id !== editingService?.id && !s.isLeaf) // Don't show current service as option
                                                 .map(service => (
                                                     <SelectItem key={service.id} value={service.id}>
-                                                        {service.name} {service.parentId ? `(child of ${services.find(s => s.id === service.parentId)?.name})` : ''}
+                                                        {service.name} {service.parentId ? `(${tRoot('forms.fields.child_of', { defaultValue: 'child of' })} ${services.find(s => s.id === service.parentId)?.name})` : ''}
                                                     </SelectItem>
                                                 ))}
                                         </SelectContent>
@@ -408,7 +408,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                     <Label htmlFor="duration">{tRoot('forms.fields.max_duration')}</Label>
                                     <div className="flex gap-2 items-end">
                                         <div className="flex-1">
-                                            <Label htmlFor="duration_minutes" className="text-xs text-muted-foreground">Minutes</Label>
+                                            <Label htmlFor="duration_minutes" className="text-xs text-muted-foreground">{tRoot('forms.fields.minutes', { defaultValue: 'Minutes' })}</Label>
                                             <Input
                                                 id="duration_minutes"
                                                 type="number"
@@ -422,7 +422,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                             />
                                         </div>
                                         <div className="flex-1">
-                                            <Label htmlFor="duration_seconds" className="text-xs text-muted-foreground">Seconds</Label>
+                                            <Label htmlFor="duration_seconds" className="text-xs text-muted-foreground">{tRoot('forms.fields.seconds', { defaultValue: 'Seconds' })}</Label>
                                             <Input
                                                 id="duration_seconds"
                                                 type="number"
@@ -442,11 +442,11 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                             onClick={() => setFormValues(prev => ({ ...prev, duration: undefined }))}
                                             disabled={formValues.duration === undefined || formValues.duration === 0}
                                         >
-                                            Clear
+                                            {tRoot('general.clear', { defaultValue: 'Clear' })}
                                         </Button>
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                        Total: {formValues.duration || 0} seconds
+                                        {tRoot('forms.fields.total', { defaultValue: 'Total' })}: {formValues.duration || 0} {tRoot('forms.fields.seconds', { defaultValue: 'seconds' })}
                                     </p>
                                 </div>
 
@@ -454,7 +454,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                     <Label htmlFor="maxWaitingTime">{tRoot('forms.fields.max_waiting_time')}</Label>
                                     <div className="flex gap-2 items-end">
                                         <div className="flex-1">
-                                            <Label htmlFor="mwt_minutes" className="text-xs text-muted-foreground">Minutes</Label>
+                                            <Label htmlFor="mwt_minutes" className="text-xs text-muted-foreground">{tRoot('forms.fields.minutes', { defaultValue: 'Minutes' })}</Label>
                                             <Input
                                                 id="mwt_minutes"
                                                 type="number"
@@ -468,7 +468,7 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                             />
                                         </div>
                                         <div className="flex-1">
-                                            <Label htmlFor="mwt_seconds" className="text-xs text-muted-foreground">Seconds</Label>
+                                            <Label htmlFor="mwt_seconds" className="text-xs text-muted-foreground">{tRoot('forms.fields.seconds', { defaultValue: 'Seconds' })}</Label>
                                             <Input
                                                 id="mwt_seconds"
                                                 type="number"
@@ -488,11 +488,11 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                             onClick={() => setFormValues(prev => ({ ...prev, maxWaitingTime: undefined }))}
                                             disabled={formValues.maxWaitingTime === undefined || formValues.maxWaitingTime === 0}
                                         >
-                                            Clear
+                                            {tRoot('general.clear', { defaultValue: 'Clear' })}
                                         </Button>
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                        Total: {formValues.maxWaitingTime || 0} seconds
+                                        {tRoot('forms.fields.total', { defaultValue: 'Total' })}: {formValues.maxWaitingTime || 0} {tRoot('forms.fields.seconds', { defaultValue: 'seconds' })}
                                     </p>
                                 </div>
 

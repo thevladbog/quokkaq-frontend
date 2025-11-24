@@ -128,7 +128,9 @@
       "select_to_edit_or_click_add": "Select a service to edit or click \"Add New Service\"",
       "configuration_title": "Service Configuration",
       "configuration_desc": "Configure services and their layout for the kiosk.",
-      "open_editor": "Open Service Editor"
+      "open_editor": "Open Service Editor",
+      "loading": "Loading services...",
+      "delete_confirm": "Are you sure you want to delete this service?"
     },
     "users": {
       "title": "Users & Roles",
@@ -213,7 +215,8 @@
       "service_settings": "Service Settings",
       "units": "Units",
       "no_unit_selected": "No Unit Selected",
-      "select_unit_desc": "Please select a unit from the left panel to configure its grid layout."
+      "select_unit_desc": "Please select a unit from the left panel to configure its grid layout.",
+      "remove_from_grid": "Remove from grid"
     },
     "ad_screen": {
       "title": "Ad Screen",
@@ -251,6 +254,7 @@
       "use_custom_colors": "Use custom colors",
       "pin_code": "PIN Code",
       "pin_help": "6-digit PIN for accessing settings on the kiosk",
+      "pin_code_placeholder": "1234",
       "ticket_header": "Ticket Header",
       "header_placeholder": "Text to appear at the top of tickets",
       "ticket_footer": "Ticket Footer",
@@ -268,6 +272,10 @@
       "logo_upload": "Company Logo",
       "feedback_url": "Feedback URL",
       "feedback_url_help": "URL for the feedback form. Use '{{ticketId}}' to insert the ticket ID.",
+      "feedback_url_placeholder": "https://example.com/survey?ticket={{ticketId}}",
+      "printer_ip_placeholder": "192.168.1.100",
+      "printer_port_placeholder": "9100",
+      "color_placeholder": "#ffffff",
       "header_color": "Header Color",
       "body_color": "Body Color",
       "grid_color": "Service Grid Color"
@@ -304,7 +312,8 @@
       "hide": "Hide",
       "noTickets": "No tickets waiting",
       "waiting": "Waiting",
-      "service_time": "Service Time"
+      "service_time": "Service Time",
+      "max_label": "Max"
     },
     "selectUnitNoUnits": "No units assigned to your account.",
     "messages": {
@@ -323,6 +332,7 @@
     "free": "Free",
     "occupy": "Occupy",
     "logout": "Logout / Release Counter",
+    "logout_failed": "Failed to logout: {error}",
     "back_to_selection": "Back to Selection",
     "processing": "Processing",
     "statuses": {
@@ -461,6 +471,7 @@
     "save": "Save",
     "yes": "Yes",
     "no": "No",
+    "clear": "Clear",
     "view": "View Details",
     "loading": "Loading...",
     "creating": "Creating..."
@@ -482,7 +493,11 @@
       "image_url": "Image URL",
       "bg_color": "Background Color",
       "text_color": "Text Color",
-      "required_field": "Field is required"
+      "required_field": "Field is required",
+      "child_of": "child of",
+      "minutes": "Minutes",
+      "seconds": "seconds",
+      "total": "Total"
     }
   },
   "login": {
@@ -601,7 +616,9 @@
     "assigned_units": "Assigned Units",
     "no_roles_assigned": "No roles assigned",
     "no_units_assigned": "No units assigned",
-    "no_permissions_assigned": "No permissions assigned"
+    "no_permissions_assigned": "No permissions assigned",
+    "roles": "Roles",
+    "units_and_permissions": "Units & Permissions"
   },
   "templates": {
     "title": "Message Templates",

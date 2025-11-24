@@ -127,7 +127,9 @@
       "select_to_edit_or_click_add": "Выберите услугу для редактирования или нажмите \"Добавить новую услугу\"",
       "configuration_title": "Конфигурация услуг",
       "configuration_desc": "Настройте услуги и их расположение для киоска.",
-      "open_editor": "Открыть редактор услуг"
+      "open_editor": "Открыть редактор услуг",
+      "loading": "Загрузка услуг...",
+      "delete_confirm": "Вы уверены, что хотите удалить эту услугу?"
     },
     "users": {
       "title": "Пользователи и роли",
@@ -212,7 +214,8 @@
       "service_settings": "Настройки услуги",
       "units": "Подразделения",
       "no_unit_selected": "Подразделение не выбрано",
-      "select_unit_desc": "Пожалуйста, выберите подразделение на левой панели для настройки макета сетки."
+      "select_unit_desc": "Пожалуйста, выберите подразделение на левой панели для настройки макета сетки.",
+      "remove_from_grid": "Убрать из сетки"
     },
     "ad_screen": {
       "title": "Экран ожидания",
@@ -250,6 +253,7 @@
       "use_custom_colors": "Использовать кастомные цвета",
       "pin_code": "Пин-код",
       "pin_help": "6-значный пин-код для доступа к настройкам на киоске",
+      "pin_code_placeholder": "1234",
       "ticket_header": "Заголовок талона",
       "header_placeholder": "Текст в верхней части талона",
       "ticket_footer": "Футер талона",
@@ -267,6 +271,10 @@
       "logo_upload": "Логотип компании",
       "feedback_url": "Ссылка для опроса",
       "feedback_url_help": "Ссылка на форму опроса. Используйте '{{ticketId}}' для подстановки ID талона.",
+      "feedback_url_placeholder": "https://example.com/survey?ticket={{ticketId}}",
+      "printer_ip_placeholder": "192.168.1.100",
+      "printer_port_placeholder": "9100",
+      "color_placeholder": "#ffffff",
       "header_color": "Цвет заголовка",
       "body_color": "Цвет фона",
       "grid_color": "Цвет сетки услуг"
@@ -303,7 +311,8 @@
       "hide": "Скрыть",
       "noTickets": "Нет ожидающих талонов",
       "waiting": "Ожидание",
-      "service_time": "Время обслуживания"
+      "service_time": "Время обслуживания",
+      "max_label": "Макс"
     },
     "selectUnitNoUnits": "Ваша учетная запись не назначена ни на одно подразделение.",
     "messages": {
@@ -323,6 +332,7 @@
     "free": "Свободно",
     "occupy": "Занять",
     "logout": "Выйти / Освободить рабочее место",
+    "logout_failed": "Не удалось выйти: {error}",
     "back_to_selection": "Вернуться к выбору",
     "processing": "Обработка",
     "statuses": {
@@ -461,6 +471,7 @@
     "save": "Сохранить",
     "yes": "Да",
     "no": "Нет",
+    "clear": "Очистить",
     "view": "Просмотреть",
     "loading": "Загрузка...",
     "creating": "Создание..."
@@ -483,7 +494,11 @@
       "image_url": "Фон услуги",
       "bg_color": "Цвет фона",
       "text_color": "Цвет текста",
-      "required_field": "Поле обязательно"
+      "required_field": "Поле обязательно",
+      "child_of": "дочерняя для",
+      "minutes": "Минуты",
+      "seconds": "секунд",
+      "total": "Всего"
     }
   },
   "login": {
@@ -602,7 +617,9 @@
     "assigned_units": "Назначенные подразделения",
     "no_roles_assigned": "Роли не назначены",
     "no_units_assigned": "Подразделения не назначены",
-    "no_permissions_assigned": "Права не назначены"
+    "no_permissions_assigned": "Права не назначены",
+    "roles": "Роли",
+    "units_and_permissions": "Подразделения и права"
   },
   "templates": {
     "title": "Шаблоны сообщений",
