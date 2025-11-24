@@ -312,7 +312,8 @@
       "noShow": "Талон {number} отмечен как не пришел",
       "transferred": "Передан талон {number}",
       "failed": "Не удалось {action} талон",
-      "serviceStarted": "Начато обслуживание талона {number}"
+      "serviceStarted": "Начато обслуживание талона {number}",
+      "ticketCreated": "Талон успешно создан"
     },
     "selectUnit": "Пожалуйста, выберите подразделение",
     "selectUnitButton": "Выбрать подразделение",
