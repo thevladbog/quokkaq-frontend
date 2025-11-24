@@ -37,21 +37,24 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
     const t = useTranslations('admin.kiosk_settings');
     const updateUnitMutation = useUpdateUnit();
 
-    const [pin, setPin] = useState('');
-    const [headerText, setHeaderText] = useState('');
-    const [footerText, setFooterText] = useState('');
-    const [printerIp, setPrinterIp] = useState('');
-    const [printerPort, setPrinterPort] = useState('9100');
-    const [printerType, setPrinterType] = useState('receipt');
-    const [isPrintEnabled, setIsPrintEnabled] = useState(true);
-    const [logoUrl, setLogoUrl] = useState('');
-    const [feedbackUrl, setFeedbackUrl] = useState('');
+    const typedConfig = currentConfig as { kiosk?: KioskConfig };
+    const kioskConfig = typedConfig.kiosk || {};
+
+    const [pin, setPin] = useState(kioskConfig.pin || '');
+    const [headerText, setHeaderText] = useState(kioskConfig.headerText || '');
+    const [footerText, setFooterText] = useState(kioskConfig.footerText || '');
+    const [printerIp, setPrinterIp] = useState(kioskConfig.printerIp || '');
+    const [printerPort, setPrinterPort] = useState(kioskConfig.printerPort || '9100');
+    const [printerType, setPrinterType] = useState(kioskConfig.printerType || 'receipt');
+    const [isPrintEnabled, setIsPrintEnabled] = useState(kioskConfig.isPrintEnabled ?? true);
+    const [logoUrl, setLogoUrl] = useState(kioskConfig.logoUrl || '');
+    const [feedbackUrl, setFeedbackUrl] = useState(kioskConfig.feedbackUrl || '');
 
     // New color settings
-    const [isCustomColorsEnabled, setIsCustomColorsEnabled] = useState(false);
-    const [headerColor, setHeaderColor] = useState('#ffffff');
-    const [bodyColor, setBodyColor] = useState('#f3f4f6'); // Default gray-100
-    const [serviceGridColor, setServiceGridColor] = useState('#ffffff');
+    const [isCustomColorsEnabled, setIsCustomColorsEnabled] = useState(kioskConfig.isCustomColorsEnabled || false);
+    const [headerColor, setHeaderColor] = useState(kioskConfig.headerColor || '#ffffff');
+    const [bodyColor, setBodyColor] = useState(kioskConfig.bodyColor || '#f3f4f6'); // Default gray-100
+    const [serviceGridColor, setServiceGridColor] = useState(kioskConfig.serviceGridColor || '#ffffff');
 
     // Sync state with currentConfig when it changes - REMOVED
     // We now use a key on the component to reset state when config changes.

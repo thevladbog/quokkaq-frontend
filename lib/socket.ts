@@ -152,6 +152,10 @@ class SocketClient {
     this.on('system.alert', (data) => callback(data as { message: string; severity: string }));
   }
 
+  onUnitEOD(callback: (data: { unitId: string; ticketsMarked: number; countersReleased: number }) => void) {
+    this.on('unit.eod', (data) => callback(data as { unitId: string; ticketsMarked: number; countersReleased: number }));
+  }
+
   // Emit events - Backend currently doesn't handle these, but keeping for compatibility
   emitScreenReady() {
     // this.socket?.send(JSON.stringify({ event: 'screen.ready' }));

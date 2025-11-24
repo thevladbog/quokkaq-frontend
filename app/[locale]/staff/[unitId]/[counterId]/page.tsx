@@ -35,7 +35,7 @@ interface StaffWorkspacePageProps {
 }
 
 export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) {
-    const { unitId, counterId } = use(params);
+    const { unitId, counterId, locale } = use(params);
     const t = useTranslations('staff');
     const router = useRouter();
     const [inProgressTicketId, setInProgressTicketId] = useState<string | null>(null);
@@ -151,10 +151,14 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
     const serviceNames = useMemo(() => {
         const names: Record<string, string> = {};
         services.forEach(s => {
-            names[s.id] = s.name;
+            // Return localized name based on locale
+            const localizedName = locale === 'ru'
+                ? (s.nameRu || s.nameEn || s.name)
+                : (s.nameEn || s.nameRu || s.name);
+            names[s.id] = localizedName;
         });
         return names;
-    }, [services]);
+    }, [services, locale]);
 
     // Collapsed groups state
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
