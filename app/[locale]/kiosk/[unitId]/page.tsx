@@ -31,7 +31,8 @@ export default function UnitKioskPage() {
   const createTicketMutation = useCreateTicketInUnit();
   const [createdTicket, setCreatedTicket] = useState<Ticket | null>(null);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
-  const [autoCloseTimerId, setAutoCloseTimerId] = useState<number | null>(null);
+  const [autoCloseTimerId, setAutoCloseTimerId] = useState<NodeJS.Timeout | null>(null);
+  const [countdown, setCountdown] = useState<number>(5);
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations('kiosk');
@@ -81,7 +82,7 @@ export default function UnitKioskPage() {
   useEffect(() => {
     return () => {
       if (autoCloseTimerId) {
-        clearTimeout(autoCloseTimerId);
+        clearInterval(autoCloseTimerId);
       }
     };
   }, [autoCloseTimerId]);
@@ -114,14 +115,25 @@ export default function UnitKioskPage() {
         });
         setCreatedTicket(ticket);
         setIsTicketModalOpen(true);
-        // Auto-close after 10 seconds
+
+        // Reset countdown and start timer
+        setCountdown(5);
         if (autoCloseTimerId) {
-          clearTimeout(autoCloseTimerId);
+          clearInterval(autoCloseTimerId);
         }
-        const timer = window.setTimeout(() => {
-          setIsTicketModalOpen(false);
-          setCreatedTicket(null);
-        }, 10000);
+
+        const timer = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              setIsTicketModalOpen(false);
+              setCreatedTicket(null);
+              clearInterval(timer);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
         setAutoCloseTimerId(timer);
 
         setMessage(t('ticketCreated', {
@@ -410,7 +422,7 @@ export default function UnitKioskPage() {
         if (!open) {
           setCreatedTicket(null);
           if (autoCloseTimerId) {
-            clearTimeout(autoCloseTimerId);
+            clearInterval(autoCloseTimerId);
             setAutoCloseTimerId(null);
           }
         }
@@ -469,7 +481,9 @@ export default function UnitKioskPage() {
             </div>
             <DialogFooter className="w-full sm:justify-center">
               <DialogClose asChild>
-                <Button variant="secondary" className="w-full sm:w-auto min-w-[120px]">{t('close')}</Button>
+                <Button variant="secondary" className="w-full sm:w-auto min-w-[120px]">
+                  {t('close')} ({countdown})
+                </Button>
               </DialogClose>
             </DialogFooter>
           </DialogContent>

@@ -25,7 +25,6 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
     const [materials, setMaterials] = useState<Material[]>([]);
 
     // State for call notification
-    const [lastCalledTicket, setLastCalledTicket] = useState<Ticket | null>(null);
     const [showingNotification, setShowingNotification] = useState<Ticket | null>(null);
 
     // Use useUnit hook with polling
@@ -59,14 +58,21 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
             fetchTickets();
         };
 
+        const handleEOD = () => {
+            console.log('EOD event received, refreshing tickets');
+            fetchTickets();
+        };
+
         socketClient.onTicketCreated(handleTicketUpdate);
         socketClient.onTicketUpdated(handleTicketUpdate);
         socketClient.onTicketCalled(handleTicketUpdate);
+        socketClient.onUnitEOD(handleEOD);
 
         return () => {
             socketClient.off('ticket.created', handleTicketUpdate);
             socketClient.off('ticket.updated', handleTicketUpdate);
             socketClient.off('ticket.called', handleTicketUpdate);
+            socketClient.off('unit.eod', handleEOD);
             socketClient.disconnect();
         };
     }, [unitId]);

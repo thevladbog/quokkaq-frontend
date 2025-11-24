@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Combobox } from '@/components/ui/combobox';
 import { unitsApi } from '@/lib/api';
 import { useUpdateUnit } from '@/lib/hooks';
 import { CountersList } from '@/components/admin/units/counters-list';
@@ -99,24 +101,37 @@ export default function UnitPage({ params }: UnitPageProps) {
 
                 <TabsContent value="general" className="mt-6">
                     <PermissionGuard permissions={['UNIT_SETTINGS_MANAGE']} unitId={unitId} fallback={<div>{t('access_denied')}</div>}>
-                        <div className="space-y-4 max-w-md">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">{t('units.unit_name')}</Label>
-                                <Input id="name" value={unitName} onChange={(e) => setUnitName(e.target.value)} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="code">{t('units.unit_code')}</Label>
-                                <Input id="code" value={unitCode} disabled className="bg-muted" />
-                                <p className="text-xs text-muted-foreground">{t('units.unit_code_immutable')}</p>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="timezone">{t('units.timezone')}</Label>
-                                <Input id="timezone" value={unitTimezone} onChange={(e) => setUnitTimezone(e.target.value)} />
-                            </div>
-                            <Button onClick={handleSaveGeneral} disabled={updateUnitMutation.isPending}>
-                                {updateUnitMutation.isPending ? t('units.saving') : t('units.save_changes')}
-                            </Button>
-                        </div>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{t('units.general_settings')}</CardTitle>
+                                <CardDescription>{t('units.general_settings_description', { defaultValue: 'Manage general settings for this unit.' })}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4 max-w-md">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">{t('units.unit_name')}</Label>
+                                    <Input id="name" value={unitName} onChange={(e) => setUnitName(e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="code">{t('units.unit_code')}</Label>
+                                    <Input id="code" value={unitCode} disabled className="bg-muted" />
+                                    <p className="text-xs text-muted-foreground">{t('units.unit_code_immutable')}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="timezone">{t('units.timezone')}</Label>
+                                    <Combobox
+                                        options={Intl.supportedValuesOf('timeZone').map((tz) => ({ value: tz, label: tz }))}
+                                        value={unitTimezone}
+                                        onChange={setUnitTimezone}
+                                        placeholder={t('units.select_timezone', { defaultValue: 'Select timezone...' })}
+                                        searchPlaceholder={t('units.search_timezone', { defaultValue: 'Search timezone...' })}
+                                        className="w-full"
+                                    />
+                                </div>
+                                <Button onClick={handleSaveGeneral} disabled={updateUnitMutation.isPending}>
+                                    {updateUnitMutation.isPending ? t('units.saving') : t('units.save_changes')}
+                                </Button>
+                            </CardContent>
+                        </Card>
                     </PermissionGuard>
                 </TabsContent>
 
