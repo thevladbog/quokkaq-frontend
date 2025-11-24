@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const localeFromPath = pathname?.split('/')?.[1] || 'en';
       const knownLocales = ['en', 'ru'];
       const loginPath = knownLocales.includes(localeFromPath) ? `/${localeFromPath}/login` : '/login';
-      router.push(loginPath as string);
+      router.push(loginPath as any);
       // Note: In a more sophisticated setup, we might want to use the router
       // to navigate to the localized login page, but this approach maintains consistency
     }
