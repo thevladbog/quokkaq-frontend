@@ -48,10 +48,12 @@ const StartCellInput: React.FC<{
   );
   const [isFocused, setIsFocused] = useState(false);
 
-  // Removed useEffect that was causing setState in effect warning.
-  // Instead, we rely on the parent to remount this component (using key) 
-  // or we accept that local state might diverge while typing (which is desired).
-  // If we need to sync from props, we can use a key on the component instance in the parent.
+  // Sync local state with props when not focused
+  useEffect(() => {
+    if (!isFocused) {
+      setValue(positionToIndex(service.gridRow!, service.gridCol!).toString());
+    }
+  }, [service.gridRow, service.gridCol, isFocused]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -465,7 +467,6 @@ const ServiceEditor: React.FC<{
             <div className="flex-1 border-t border-dashed border-border mx-2"></div>
             <div className="flex-1 border-t border-dashed border-border mx-2"></div>
             <StartCellInput
-              key={`${service.id}-${service.gridRow}-${service.gridCol}`}
               service={service}
               max={GRID_ROWS * GRID_COLS - 1}
               onPositionChange={onPositionChange}
@@ -536,6 +537,46 @@ const ServiceEditor: React.FC<{
 };
 
 
+// Wrapper component to handle responsive grid sizing
+const ResponsiveGridWrapper: React.FC<{
+  rows: number;
+  cols: number;
+  onCellDimensionsChange: (width: number, height: number) => void;
+  children: React.ReactNode;
+}> = ({ rows, cols, onCellDimensionsChange, children }) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+
+    const calculateDimensions = (width: number, height: number) => {
+      if (width > 0 && height > 0) {
+        const totalGapWidth = 2 * (cols - 1);
+        const totalGapHeight = 2 * (rows - 1);
+        const cellWidth = Math.max(1, (width - totalGapWidth) / cols);
+        const cellHeight = Math.max(1, (height - totalGapHeight) / rows);
+        onCellDimensionsChange(cellWidth, cellHeight);
+      }
+    };
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        calculateDimensions(entry.contentRect.width, entry.contentRect.height);
+      }
+    });
+
+    observer.observe(ref.current);
+
+    // Initial measure
+    const rect = ref.current.getBoundingClientRect();
+    calculateDimensions(rect.width, rect.height);
+
+    return () => observer.disconnect();
+  }, [rows, cols, onCellDimensionsChange]);
+
+  return <div ref={ref} className="w-full h-full">{children}</div>;
+};
+
 // Component for displaying grid tabs
 const ServiceGridWithTabs: React.FC<{
   services: ServiceWithPosition[];
@@ -566,225 +607,20 @@ const ServiceGridWithTabs: React.FC<{
       );
   };
 
-  // Note: MainGridWithOverlays and ChildGridWithOverlays are defined outside this component
-  // to avoid redefinition issues with const
-
-  // Create refs for main grid and all child grids
-  const mainGridRef = useRef<HTMLDivElement>(null);
-  const childGridRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  // State for grid dimensions
+  const [mainGridDimensions, setMainGridDimensions] = useState({ width: 60, height: 60 });
   const [childGridDimensions, setChildGridDimensions] = useState<{ [key: string]: { width: number, height: number } }>({});
 
-  // State for main grid dimensions
-  const [mainGridDimensions, setMainGridDimensions] = useState({ width: 60, height: 60 });
+  const handleMainGridResize = (width: number, height: number) => {
+    setMainGridDimensions({ width, height });
+  };
 
-  // Note: activeTab and setActiveTab are passed as props to this component
-  // No need to redeclare them with useState
-
-  // Effect to handle main grid dimensions
-  useEffect(() => {
-    if (!mainGridRef.current) return;
-
-    const updateMainGridDimensions = () => {
-      if (!mainGridRef.current) return;
-      const containerRect = mainGridRef.current.getBoundingClientRect();
-
-      if (containerRect.width > 0 && containerRect.height > 0) {
-        const totalGapWidth = 2 * (GRID_COLS - 1); // 2px gap * (cols - 1)
-        const totalGapHeight = 2 * (GRID_ROWS - 1); // 2px gap * (rows - 1)
-
-        const cellWidth = Math.max(1, (containerRect.width - totalGapWidth) / GRID_COLS);
-        const cellHeight = Math.max(1, (containerRect.height - totalGapHeight) / GRID_ROWS);
-
-        setMainGridDimensions({ width: cellWidth, height: cellHeight });
-      }
-    };
-
-    // Run immediately
-    updateMainGridDimensions();
-
-    // Use ResizeObserver if available
-    if (typeof ResizeObserver !== 'undefined') {
-      const resizeObserver = new ResizeObserver(updateMainGridDimensions);
-      resizeObserver.observe(mainGridRef.current);
-
-      return () => {
-        resizeObserver.disconnect();
-      };
-    } else {
-      // Fallback to window resize
-      window.addEventListener('resize', updateMainGridDimensions);
-      return () => window.removeEventListener('resize', updateMainGridDimensions);
-    }
-  }, []); // Empty dependency array since we're using ref
-
-  // Effect to handle child grid dimensions - run when parent services change
-  useEffect(() => {
-    const updateChildDimensions = () => {
-      const newDimensions: { [key: string]: { width: number, height: number } } = {};
-
-      parentServices.forEach(parent => {
-        const element = childGridRefs.current[parent.id];
-        if (element) {
-          const containerRect = element.getBoundingClientRect();
-
-          if (containerRect.width > 0 && containerRect.height > 0) {
-            const totalGapWidth = 2 * (GRID_COLS - 1); // 2px gap * (cols - 1)
-            const totalGapHeight = 2 * (GRID_ROWS - 1); // 2px gap * (rows - 1)
-
-            const cellWidth = Math.max(1, (containerRect.width - totalGapWidth) / GRID_COLS);
-            const cellHeight = Math.max(1, (containerRect.height - totalGapHeight) / GRID_ROWS);
-
-            newDimensions[parent.id] = { width: cellWidth, height: cellHeight };
-          }
-        }
-      });
-
-      // Only update state if dimensions have actually changed
-      setChildGridDimensions(prev => {
-        // Compare the new dimensions with previous ones
-        const prevKeys = Object.keys(prev);
-        const newKeys = Object.keys(newDimensions);
-
-        if (prevKeys.length !== newKeys.length) {
-          return newDimensions;
-        }
-
-        for (const key of newKeys) {
-          if (!prev[key] ||
-            prev[key].width !== newDimensions[key].width ||
-            prev[key].height !== newDimensions[key].height) {
-            return newDimensions;
-          }
-        }
-
-        return prev; // No changes, return previous to prevent re-render
-      });
-    };
-
-    // Update immediately after parent services change
-    updateChildDimensions();
-  }, [parentServices]); // Only run when parent services change
-
-  // Effect for ResizeObserver to handle element size changes
-  useEffect(() => {
-    if (typeof ResizeObserver === 'undefined') {
-      // Fallback to window resize if ResizeObserver is not supported
-      const updateChildDimensions = () => {
-        const newDimensions: { [key: string]: { width: number, height: number } } = {};
-
-        parentServices.forEach(parent => {
-          const element = childGridRefs.current[parent.id];
-          if (element) {
-            const containerRect = element.getBoundingClientRect();
-
-            if (containerRect.width > 0 && containerRect.height > 0) {
-              const totalGapWidth = 2 * (GRID_COLS - 1); // 2px gap * (cols - 1)
-              const totalGapHeight = 2 * (GRID_ROWS - 1); // 2px gap * (rows - 1)
-
-              const cellWidth = Math.max(1, (containerRect.width - totalGapWidth) / GRID_COLS);
-              const cellHeight = Math.max(1, (containerRect.height - totalGapHeight) / GRID_ROWS);
-
-              newDimensions[parent.id] = { width: cellWidth, height: cellHeight };
-            }
-          }
-        });
-
-        // Only update state if dimensions have actually changed
-        setChildGridDimensions(prev => {
-          // Compare the new dimensions with previous ones
-          const prevKeys = Object.keys(prev);
-          const newKeys = Object.keys(newDimensions);
-
-          if (prevKeys.length !== newKeys.length) {
-            return newDimensions;
-          }
-
-          for (const key of newKeys) {
-            if (!prev[key] ||
-              prev[key].width !== newDimensions[key].width ||
-              prev[key].height !== newDimensions[key].height) {
-              return newDimensions;
-            }
-          }
-
-          return prev; // No changes, return previous to prevent re-render
-        });
-      };
-
-      window.addEventListener('resize', updateChildDimensions);
-      return () => window.removeEventListener('resize', updateChildDimensions);
-    }
-
-    let resizeObserver: ResizeObserver | null = null;
-
-    const setupObserver = () => {
-      // Disconnect existing observer if present
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-
-      // Create new observer
-      resizeObserver = new ResizeObserver((entries) => {
-        const newDimensions: { [key: string]: { width: number, height: number } } = {};
-
-        // Update only the elements that changed
-        entries.forEach(entry => {
-          // Look for which parent this element belongs to
-          for (const parent of parentServices) {
-            if (childGridRefs.current[parent.id] === entry.target) {
-              const containerRect = entry.contentRect;
-
-              if (containerRect.width > 0 && containerRect.height > 0) {
-                const totalGapWidth = 2 * (GRID_COLS - 1); // 2px gap * (cols - 1)
-                const totalGapHeight = 2 * (GRID_ROWS - 1); // 2px gap * (rows - 1)
-
-                const cellWidth = Math.max(1, (containerRect.width - totalGapWidth) / GRID_COLS);
-                const cellHeight = Math.max(1, (containerRect.height - totalGapHeight) / GRID_ROWS);
-
-                newDimensions[parent.id] = { width: cellWidth, height: cellHeight };
-              }
-              break;
-            }
-          }
-        });
-
-        // Update only changed dimensions
-        setChildGridDimensions(prev => {
-          const updated = { ...prev, ...newDimensions };
-
-          // Check if there are actual changes to prevent unnecessary updates
-          let hasChanges = false;
-          for (const key in newDimensions) {
-            if (!prev[key] ||
-              prev[key].width !== newDimensions[key].width ||
-              prev[key].height !== newDimensions[key].height) {
-              hasChanges = true;
-              break;
-            }
-          }
-
-          return hasChanges ? updated : prev;
-        });
-      });
-
-      // Observe all current child grid elements
-      Object.values(childGridRefs.current).forEach(element => {
-        if (element && resizeObserver) {
-          resizeObserver.observe(element);
-        }
-      });
-    };
-
-    // Set up the observer
-    setupObserver();
-
-    // Return cleanup function
-    return () => {
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-    };
-  }, [parentServices]); // Re-run when parent services change to update observations
+  const handleChildGridResize = (parentId: string, width: number, height: number) => {
+    setChildGridDimensions(prev => {
+      if (prev[parentId]?.width === width && prev[parentId]?.height === height) return prev;
+      return { ...prev, [parentId]: { width, height } };
+    });
+  };
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -805,14 +641,18 @@ const ServiceGridWithTabs: React.FC<{
             <CardTitle>{mainGridServices[0]?.t('grid_configuration.main_grid') || 'Main Grid'} ({GRID_COLS}x{GRID_ROWS})</CardTitle>
           </CardHeader>
           <CardContent>
-            <div ref={mainGridRef}>
+            <ResponsiveGridWrapper
+              rows={GRID_ROWS}
+              cols={GRID_COLS}
+              onCellDimensionsChange={handleMainGridResize}
+            >
               <MainGridWithOverlays
                 services={mainGridServices}
                 cellWidth={mainGridDimensions.width}
                 cellHeight={mainGridDimensions.height}
                 onChange={onPropertyChange}
               />
-            </div>
+            </ResponsiveGridWrapper>
           </CardContent>
         </Card>
       </TabsContent>
@@ -830,14 +670,10 @@ const ServiceGridWithTabs: React.FC<{
                 <CardTitle>{parent.name} {parentServices[0]?.t('grid_configuration.sub_grid')} ({GRID_COLS}x{GRID_ROWS})</CardTitle>
               </CardHeader>
               <CardContent>
-                <div
-                  ref={(el) => {
-                    if (el) {
-                      childGridRefs.current[parent.id] = el;
-                    } else {
-                      delete childGridRefs.current[parent.id];
-                    }
-                  }}
+                <ResponsiveGridWrapper
+                  rows={GRID_ROWS}
+                  cols={GRID_COLS}
+                  onCellDimensionsChange={(w, h) => handleChildGridResize(parent.id, w, h)}
                 >
                   <ChildGridWithOverlays
                     services={childServices}
@@ -846,7 +682,7 @@ const ServiceGridWithTabs: React.FC<{
                     cellHeight={gridDimensions.height}
                     onChange={onPropertyChange}
                   />
-                </div>
+                </ResponsiveGridWrapper>
               </CardContent>
             </Card>
           </TabsContent>
@@ -899,10 +735,8 @@ const SimpleGrid: React.FC<{
     }
   };
 
-  // Separate services into main grid and sub-grids
-  const mainGridServices = services.filter(service =>
-    service.gridRow !== null && service.gridCol !== null
-  );
+  // Identify parent services
+  const parentServices = services.filter(service => service.isLeaf === false);
 
   // Filter services based on active tab
   // If active tab is main-grid, show services without parents
@@ -924,13 +758,32 @@ const SimpleGrid: React.FC<{
     }
   };
 
+  // Get placed services for the current tab
+  const getPlacedServicesForActiveTab = () => {
+    if (activeTab === 'main-grid') {
+      // Main grid: services with gridRow/Col set AND (no parent OR parent is not in parentServices list)
+      return services.filter(service =>
+        (service.gridRow !== null && service.gridCol !== null) &&
+        !(service.parentId && parentServices.some(parent => parent.id === service.parentId))
+      );
+    } else {
+      const parentId = activeTab.replace('grid-', '');
+      return services.filter(service =>
+        service.parentId === parentId &&
+        service.gridRow !== null &&
+        service.gridCol !== null
+      );
+    }
+  };
+
   const availableServices = getAvailableServices();
+  const placedServicesForTab = getPlacedServicesForActiveTab();
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Services and Settings sidebar - only show if there are available services or services on grid */}
-        {(availableServices.length > 0 || services.filter(service => service.gridRow !== null && service.gridCol !== null).length > 0) && (
+        {(availableServices.length > 0 || placedServicesForTab.length > 0) && (
           <div className="lg:col-span-1 space-y-6">
             {/* Available Services card - only show if there are services */}
             {availableServices.length > 0 && (
@@ -951,15 +804,14 @@ const SimpleGrid: React.FC<{
             )}
 
             {/* Service Settings card - only show if there are services on grid */}
-            {services.filter(service => service.gridRow !== null && service.gridCol !== null).length > 0 && (
+            {placedServicesForTab.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle>{services[0]?.t?.('grid_configuration.service_settings')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Accordion type="multiple" className="w-full">
-                    {services
-                      .filter(service => service.gridRow !== null && service.gridCol !== null) // Only services placed on grid
+                    {placedServicesForTab
                       .map(service => (
                         <AccordionItem key={`editor-${service.id}`} value={`editor-${service.id}`}>
                           <AccordionTrigger className="p-2 hover:bg-accent rounded text-sm">
@@ -975,7 +827,7 @@ const SimpleGrid: React.FC<{
                               service={service}
                               onChange={onPropertyChange}
                               onPositionChange={onPositionChange}
-                              allServices={services.filter(s => s.gridRow !== null && s.gridCol !== null)}
+                              allServices={placedServicesForTab}
                             />
                           </AccordionContent>
                         </AccordionItem>
@@ -989,7 +841,7 @@ const SimpleGrid: React.FC<{
         )}
 
         {/* Grid visualization with tabs - adjust column span when no sidebars */}
-        <div className={(availableServices.length > 0 || services.filter(service => service.gridRow !== null && service.gridCol !== null).length > 0) ? "lg:col-span-3" : "lg:col-span-4"}>
+        <div className={(availableServices.length > 0 || placedServicesForTab.length > 0) ? "lg:col-span-3" : "lg:col-span-4"}>
           <ServiceGridWithTabs
             services={services}
             onAddService={onAddService}
