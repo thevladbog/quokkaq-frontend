@@ -311,7 +311,7 @@ export default function UnitKioskPage() {
 
       {/* Services grid */}
       <div
-        className="flex-1 grid grid-cols-8 grid-rows-4 gap-2 h-full w-full overflow-auto bg-muted p-2 rounded-lg"
+        className="flex-1 grid grid-cols-8 grid-rows-4 gap-4 h-full w-full overflow-auto bg-muted p-4 rounded-lg"
         style={{ backgroundColor: serviceGridColor }}
       >
         {/* Render services with their exact grid positions */}
