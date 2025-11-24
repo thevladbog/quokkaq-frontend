@@ -50,6 +50,27 @@ docker compose -f ..\docker-compose.dev.yml up --build -d
 
 The frontend dev server will be available at `http://localhost:3000`.
 
+### Environment Variables
+
+Create a `.env.local` file in the root of the project for local development:
+
+```bash
+# API Configuration
+NEXT_PUBLIC_API_URL=http://localhost:3001
+
+# WebSocket Configuration  
+# For local development:
+NEXT_PUBLIC_WS_URL=http://localhost:3001
+# For production deployment, set to:
+# NEXT_PUBLIC_WS_URL=wss://api.quokkaq.v-b.tech
+```
+
+> [!IMPORTANT]
+> **For production deployment**, you MUST set `NEXT_PUBLIC_WS_URL` to the production WebSocket URL:
+> - Add it to your CI/CD environment variables (GitHub Secrets/Variables)
+> - Or set it in your Docker environment configuration
+> - Or create a `.env.production` file (not recommended for sensitive data)
+
 ## 📦 Deployment
 
 The project is configured for automated deployment to **Yandex Cloud** using GitHub Actions.

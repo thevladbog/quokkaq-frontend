@@ -79,6 +79,7 @@ jobs:
           push: true
           build-args: |
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_WS_URL=${{ secrets.NEXT_PUBLIC_WS_URL }}
           tags: |
             cr.yandex/${{ secrets.YC_REGISTRY_ID }}/quokkaq-frontend:${{ needs.version-bump.outputs.new_version }}
             cr.yandex/${{ secrets.YC_REGISTRY_ID }}/quokkaq-frontend:latest
