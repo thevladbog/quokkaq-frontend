@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { unitsApi } from '@/lib/api';
+import { unitsApi, Material } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -15,9 +15,19 @@ import { toast } from 'sonner';
 import { LogoUpload } from '@/components/ui/logo-upload';
 import { useUpdateUnit } from '@/lib/hooks';
 
+interface AdScreenConfig {
+    width?: number;
+    duration?: number;
+    activeMaterialIds?: string[];
+    logoUrl?: string;
+    isCustomColorsEnabled?: boolean;
+    headerColor?: string;
+    bodyColor?: string;
+}
+
 interface AdScreenSettingsProps {
     unitId: string;
-    currentConfig: any;
+    currentConfig: Record<string, unknown>;
 }
 
 export function AdScreenSettings({ unitId, currentConfig }: AdScreenSettingsProps) {
@@ -25,8 +35,9 @@ export function AdScreenSettings({ unitId, currentConfig }: AdScreenSettingsProp
     const queryClient = useQueryClient();
     const [uploading, setUploading] = useState(false);
 
-    // Determine the correct config object. It might be nested under 'adScreen', 'config', or be the object itself.
-    const adConfig = currentConfig?.adScreen || currentConfig?.config || currentConfig || { width: 0, duration: 5, activeMaterialIds: [] };
+    // Determine the correct config object.
+    const typedConfig = currentConfig as { adScreen?: AdScreenConfig; config?: AdScreenConfig } & AdScreenConfig;
+    const adConfig = typedConfig.adScreen || typedConfig.config || typedConfig || { width: 0, duration: 5, activeMaterialIds: [] };
 
     const [width, setWidth] = useState(adConfig.width || 0);
     const [duration, setDuration] = useState(adConfig.duration || 5);
@@ -36,22 +47,12 @@ export function AdScreenSettings({ unitId, currentConfig }: AdScreenSettingsProp
     const [headerColor, setHeaderColor] = useState(adConfig.headerColor || '#ffffff');
     const [bodyColor, setBodyColor] = useState(adConfig.bodyColor || '#ffffff');
 
-    // Sync state with currentConfig when it changes
-    useEffect(() => {
-        const configToUse = currentConfig?.adScreen || currentConfig?.config || currentConfig;
-        if (configToUse) {
-            setWidth(configToUse.width || 0);
-            setDuration(configToUse.duration || 5);
-            setSelectedMaterials(configToUse.activeMaterialIds || []);
-            setLogoUrl(configToUse.logoUrl || '');
-            setIsCustomColorsEnabled(configToUse.isCustomColorsEnabled || false);
-            setHeaderColor(configToUse.headerColor || '#ffffff');
-            setBodyColor(configToUse.bodyColor || '#ffffff');
-        }
-    }, [currentConfig]);
+    // Sync state with currentConfig when it changes - REMOVED
+    // We now use a key on the component to reset state when config changes.
+    // This avoids "setState in useEffect" warnings and potential loops.
 
     // Queries and Mutations
-    const { data: materials = [], isLoading } = useQuery({
+    const { data: materials = [] as Material[], isLoading } = useQuery({
         queryKey: ['units', unitId, 'materials'],
         queryFn: () => unitsApi.getMaterials(unitId),
     });
@@ -84,9 +85,9 @@ export function AdScreenSettings({ unitId, currentConfig }: AdScreenSettingsProp
 
     const handleSaveSettings = () => {
         const newConfig = {
-            ...currentConfig,
+            ...(currentConfig || {}),
             adScreen: {
-                ...currentConfig?.adScreen,
+                ...(currentConfig?.adScreen as AdScreenConfig || {}),
                 width,
                 duration,
                 activeMaterialIds: selectedMaterials,

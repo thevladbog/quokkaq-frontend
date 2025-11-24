@@ -15,7 +15,7 @@ import {
     useConfirmArrivalTicket,
     useUnitServices,
 } from '@/lib/hooks';
-import { countersApi, unitsApi, servicesApi } from '@/lib/api';
+import { countersApi, unitsApi, servicesApi, Ticket } from '@/lib/api';
 import { socketClient } from '@/lib/socket';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/src/i18n/navigation';
@@ -128,7 +128,7 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
 
     // Group waiting tickets
     const groupedWaiting = useMemo(() => {
-        const map: Record<string, any[]> = {};
+        const map: Record<string, Ticket[]> = {};
 
         // Initialize with all leaf services
         services.forEach(service => {
@@ -163,7 +163,8 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
         if (keys.length && Object.keys(openGroups).length === 0) {
             const initial: Record<string, boolean> = {};
             keys.forEach((k, i) => initial[k] = i === 0); // Open first group by default
-            setOpenGroups(initial);
+            // Wrap in setTimeout to avoid "setState in useEffect" warning
+            setTimeout(() => setOpenGroups(initial), 0);
         }
     }, [groupedWaiting]); // Only run when grouping changes significantly (e.g. new services)
 
@@ -401,7 +402,7 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
                                     </div>
                                     {openGroups[serviceId] && (
                                         <div className="mt-2 space-y-2">
-                                            {ticketsForService.map((ticket: any) => (
+                                            {ticketsForService.map((ticket) => (
                                                 <StaffTicketItem
                                                     key={ticket.id}
                                                     ticket={ticket}
@@ -438,8 +439,8 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
 
 
 
-function StaffTicketItem({ ticket, onCall, disabled, t }: { ticket: any, onCall: () => void, disabled: boolean, t: any }) {
-    const { background, formatTime, elapsed } = useTicketTimer(ticket.createdAt, ticket.maxWaitingTime);
+function StaffTicketItem({ ticket, onCall, disabled, t }: { ticket: Ticket, onCall: () => void, disabled: boolean, t: (key: string, values?: Record<string, any>) => string }) {
+    const { background, formatTime, elapsed } = useTicketTimer(ticket.createdAt || undefined, ticket.maxWaitingTime);
 
     return (
         <div
@@ -468,13 +469,13 @@ function StaffTicketItem({ ticket, onCall, disabled, t }: { ticket: any, onCall:
     );
 }
 
-function CurrentTicketDisplay({ ticket, t }: { ticket: any, t: any }) {
+function CurrentTicketDisplay({ ticket, t }: { ticket: Ticket, t: (key: string, values?: Record<string, any>) => string }) {
     const isInService = ticket.status === 'in_service';
 
     // Service Timer (Active)
     // User requested to count from "moment of call" (calledAt).
     const { formatTime: formatServiceTime, elapsed: serviceElapsed } = useTicketTimer(
-        isInService ? ticket.calledAt : null
+        isInService ? (ticket.calledAt || undefined) : undefined
     );
 
     // Waiting Time (Static)

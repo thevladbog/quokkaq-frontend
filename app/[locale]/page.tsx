@@ -42,7 +42,7 @@ export default function Home() {
   // Helper to check if user has specific permission in ANY unit
   const hasPermissionInAnyUnit = (permission: string) => {
     if (!user?.permissions) return false;
-    return Object.values(user.permissions).some((perms: any) => perms.includes(permission));
+    return (Object.values(user.permissions) as string[][]).some((perms: string[]) => perms.includes(permission));
   };
 
   const hasRole = (role: string) => user?.roles?.includes(role);

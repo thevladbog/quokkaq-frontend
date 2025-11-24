@@ -83,8 +83,12 @@ export default function SetupPage() {
                 }, 2000);
             }
 
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError(t('error'));
+            }
         } finally {
             setLoading(false);
         }
@@ -155,7 +159,7 @@ export default function SetupPage() {
                             />
                         </div>
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="space-y-2">
                         <Button type="submit" className="w-full" disabled={loading || !!success}>
                             {loading ? (
                                 <>

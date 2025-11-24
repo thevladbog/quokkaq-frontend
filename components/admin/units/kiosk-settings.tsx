@@ -12,9 +12,25 @@ import { useUpdateUnit } from '@/lib/hooks';
 import { toast } from 'sonner';
 import { LogoUpload } from '@/components/ui/logo-upload';
 
+interface KioskConfig {
+    pin?: string;
+    headerText?: string;
+    footerText?: string;
+    printerIp?: string;
+    printerPort?: string;
+    printerType?: string;
+    isPrintEnabled?: boolean;
+    logoUrl?: string;
+    feedbackUrl?: string;
+    isCustomColorsEnabled?: boolean;
+    headerColor?: string;
+    bodyColor?: string;
+    serviceGridColor?: string;
+}
+
 interface KioskSettingsProps {
     unitId: string;
-    currentConfig: any;
+    currentConfig: Record<string, unknown>;
 }
 
 export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
@@ -37,31 +53,16 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
     const [bodyColor, setBodyColor] = useState('#f3f4f6'); // Default gray-100
     const [serviceGridColor, setServiceGridColor] = useState('#ffffff');
 
-    useEffect(() => {
-        if (currentConfig?.kiosk) {
-            setPin(currentConfig.kiosk.pin || '');
-            setHeaderText(currentConfig.kiosk.headerText || '');
-            setFooterText(currentConfig.kiosk.footerText || '');
-            setPrinterIp(currentConfig.kiosk.printerIp || '');
-            setPrinterPort(currentConfig.kiosk.printerPort || '9100');
-            setPrinterType(currentConfig.kiosk.printerType || 'receipt');
-            setIsPrintEnabled(currentConfig.kiosk.isPrintEnabled !== false);
-            setLogoUrl(currentConfig.kiosk.logoUrl || '');
-            setFeedbackUrl(currentConfig.kiosk.feedbackUrl || '');
-
-            // Initialize colors
-            setIsCustomColorsEnabled(currentConfig.kiosk.isCustomColorsEnabled || false);
-            setHeaderColor(currentConfig.kiosk.headerColor || '#ffffff');
-            setBodyColor(currentConfig.kiosk.bodyColor || '#f3f4f6');
-            setServiceGridColor(currentConfig.kiosk.serviceGridColor || '#ffffff');
-        }
-    }, [currentConfig]);
+    // Sync state with currentConfig when it changes - REMOVED
+    // We now use a key on the component to reset state when config changes.
+    // This avoids "setState in useEffect" warnings and potential loops.
 
     const handleSave = () => {
+        const typedConfig = currentConfig as { kiosk?: KioskConfig };
         const newConfig = {
-            ...currentConfig,
+            ...(currentConfig || {}),
             kiosk: {
-                ...currentConfig?.kiosk,
+                ...(typedConfig.kiosk || {}),
                 pin,
                 headerText,
                 footerText,

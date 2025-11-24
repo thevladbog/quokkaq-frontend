@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { shiftApi, unitsApi } from '@/lib/api';
+import { shiftApi, unitsApi, Ticket, Service } from '@/lib/api';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Users, ListChecks, Clock, AlertTriangle, XCircle } from 'lucide-react';
@@ -346,8 +346,8 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
 
 import { useTicketTimer } from '@/lib/ticket-timer';
 
-function TicketListItem({ ticket }: { ticket: any }) {
-  const { background, formatTime, elapsed } = useTicketTimer(ticket.createdAt, ticket.maxWaitingTime);
+function TicketListItem({ ticket }: { ticket: Ticket & { service?: Service } }) {
+  const { background, formatTime, elapsed } = useTicketTimer(ticket.createdAt || undefined, ticket.maxWaitingTime);
 
   return (
     <div

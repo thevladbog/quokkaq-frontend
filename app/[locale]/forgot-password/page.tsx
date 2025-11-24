@@ -1,13 +1,10 @@
-'use client';
-
 import { useState } from 'react';
-import { useRouter, Link } from '@/src/i18n/navigation';
+import { Link } from '@/src/i18n/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 export default function ForgotPasswordPage() {

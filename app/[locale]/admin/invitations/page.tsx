@@ -58,8 +58,8 @@ export default function InvitationsPage() {
                 const data = await response.json();
                 setInvitations(data);
             }
-        } catch (error) {
-            console.error('Error fetching invitations:', error);
+        } catch {
+            console.error('Error fetching invitations');
         } finally {
             setLoading(false);
         }
@@ -84,7 +84,7 @@ export default function InvitationsPage() {
             } else {
                 toast.error(t('error_sending'));
             }
-        } catch (error) {
+        } catch {
             toast.error(t('error_sending'));
         }
     };
@@ -112,7 +112,7 @@ export default function InvitationsPage() {
             } else {
                 toast.error(t('error_sending'));
             }
-        } catch (error) {
+        } catch {
             toast.error(t('error_sending'));
         } finally {
             setDeleteDialogOpen(false);
@@ -129,7 +129,7 @@ export default function InvitationsPage() {
 
         return (
             <Badge variant={variants[status] || 'default'}>
-                {t(status as any)}
+                {t(status)}
             </Badge>
         );
     };

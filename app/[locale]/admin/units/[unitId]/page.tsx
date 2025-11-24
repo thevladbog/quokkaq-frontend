@@ -2,7 +2,7 @@
 
 import { use, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,9 +31,9 @@ export default function UnitPage({ params }: UnitPageProps) {
     const router = useRouter();
     const t = useTranslations('admin'); // Using admin namespace
     const [activeTab, setActiveTab] = useState('general');
-    const queryClient = useQueryClient();
+    // const queryClient = useQueryClient(); // Unused
 
-    const { data: unit, isLoading } = useQuery({
+    const { data: unit } = useQuery({
         queryKey: ['unit', unitId],
         queryFn: () => unitsApi.getById(unitId),
     });
@@ -137,12 +137,20 @@ export default function UnitPage({ params }: UnitPageProps) {
                 </TabsContent>
                 <TabsContent value="ad-screen" className="mt-6">
                     <PermissionGuard permissions={['UNIT_TICKET_SCREEN_MANAGE']} unitId={unitId} fallback={<div>{t('access_denied')}</div>}>
-                        <AdScreenSettings unitId={unitId} currentConfig={unit.config} />
+                        <AdScreenSettings
+                            key={JSON.stringify(unit.config?.adScreen)}
+                            unitId={unitId}
+                            currentConfig={unit.config || {}}
+                        />
                     </PermissionGuard>
                 </TabsContent>
                 <TabsContent value="kiosk" className="mt-6">
                     <PermissionGuard permissions={['UNIT_SETTINGS_MANAGE']} unitId={unitId} fallback={<div>{t('access_denied')}</div>}>
-                        <KioskSettings unitId={unitId} currentConfig={unit.config} />
+                        <KioskSettings
+                            key={JSON.stringify(unit.config?.kiosk)}
+                            unitId={unitId}
+                            currentConfig={unit.config || {}}
+                        />
                     </PermissionGuard>
                 </TabsContent>
             </Tabs>

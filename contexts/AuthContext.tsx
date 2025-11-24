@@ -1,11 +1,11 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { authApi } from '../lib/api';
+import { authApi, User } from '../lib/api';
 
 interface AuthContextType {
-  user: any;
+  user: User | null;
   token: string | null;
   isAuthenticated: boolean;
   login: (token: string) => void;
@@ -17,7 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
@@ -33,6 +33,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (storedToken) {
         setToken(storedToken);
       }
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    setToken(null);
+    setUser(null);
+    setIsLoading(false);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      // Redirect to the localized login page if we can determine the locale
+      // Try to extract locale from current path (e.g., /en/..., /ru/...) or fallback to default
+      // Determine locale from current pathname (mounted above Intl provider)
+      const localeFromPath = pathname?.split('/')?.[1] || 'en';
+      const knownLocales = ['en', 'ru'];
+      const loginPath = knownLocales.includes(localeFromPath) ? `/${localeFromPath}/login` : '/login';
+      router.push(loginPath as string);
+      // Note: In a more sophisticated setup, we might want to use the router
+      // to navigate to the localized login page, but this approach maintains consistency
+    }
+  }, [pathname, router]);
+
+  const login = useCallback((newToken: string) => {
+    if (typeof window !== 'undefined') {
+      setToken(newToken);
+      localStorage.setItem('access_token', newToken);
+      // Fetch user data after login
+      authApi.getMe()
+        .then(userData => {
+          setUser(userData);
+          // Reset loading state after successful login
+          setIsLoading(false);
+        })
+        .catch(error => {
+          console.error('Failed to fetch user after login:', error);
+          setToken(null);
+          setUser(null);
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          // Reset loading state after failed login
+          setIsLoading(false);
+        });
     }
   }, []);
 
@@ -65,49 +107,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       fetchUser();
     }
-  }, [isClient, token]);
-
-  const login = (newToken: string) => {
-    if (typeof window !== 'undefined') {
-      setToken(newToken);
-      localStorage.setItem('access_token', newToken);
-      // Fetch user data after login
-      authApi.getMe()
-        .then(userData => {
-          setUser(userData);
-          // Reset loading state after successful login
-          setIsLoading(false);
-        })
-        .catch(error => {
-          console.error('Failed to fetch user after login:', error);
-          setToken(null);
-          setUser(null);
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          // Reset loading state after failed login
-          setIsLoading(false);
-        });
-    }
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    setIsLoading(false);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      // Redirect to the localized login page if we can determine the locale
-      // Try to extract locale from current path (e.g., /en/..., /ru/...) or fallback to default
-      // Determine locale from current pathname (mounted above Intl provider)
-      const localeFromPath = pathname?.split('/')?.[1] || 'en';
-      const knownLocales = ['en', 'ru'];
-      const loginPath = knownLocales.includes(localeFromPath) ? `/${localeFromPath}/login` : '/login';
-      router.push(loginPath as any);
-      // Note: In a more sophisticated setup, we might want to use the router
-      // to navigate to the localized login page, but this approach maintains consistency
-    }
-  };
+  }, [isClient, token, logout]);
 
   // Listen for global 'auth:logout' events (dispatched by apiRequest on 401 / refresh failure)
   useEffect(() => {
@@ -124,7 +124,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         window.removeEventListener('auth:logout', handleGlobalLogout as EventListener);
       }
     };
-  }, []);
+  }, [logout]);
 
   const value = {
     user,

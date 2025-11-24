@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -15,13 +15,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import {
   useUsers,
   useUnits,
   useUserUnits,
-  useSetUserUnits,
   useAssignUserToUnit,
   useRemoveUserFromUnit,
   useUpdateUser,
@@ -80,7 +78,7 @@ export default function UsersPage() {
   const [selectedUnitToAssign, setSelectedUnitToAssign] = useState<Unit | null>(null);
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
-  const setUserUnitsMutation = useSetUserUnits();
+
   const assignUserToUnitMutation = useAssignUserToUnit();
   const removeUserFromUnitMutation = useRemoveUserFromUnit();
   const updateUserMutation = useUpdateUser();
@@ -173,7 +171,7 @@ export default function UsersPage() {
 
   // Helper to get translated permission label
   const getPermissionLabel = (permissionId: string) => {
-    // @ts-ignore - dynamic key access
+    // @ts-expect-error - dynamic key access
     return t(`users.permissions_list.${permissionId}`) || permissionId;
   };
 
@@ -188,7 +186,7 @@ export default function UsersPage() {
 
     // Regular users see only units where they have UNIT_USERS_MANAGE permission
     const allowedUnitIds = Object.entries(currentUser?.permissions || {})
-      .filter(([_, perms]) => (perms as string[]).includes('UNIT_USERS_MANAGE'))
+      .filter(([perms]) => (perms as string[]).includes('UNIT_USERS_MANAGE'))
       .map(([unitId]) => unitId);
 
     return (units as Unit[]).filter(u => allowedUnitIds.includes(u.id));

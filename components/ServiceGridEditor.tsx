@@ -20,7 +20,7 @@ type ServiceWithPosition = Service & {
   gridCol: number | null;
   gridRowSpan: number | null;
   gridColSpan: number | null;
-  t?: any;
+  t?: (key: string) => string;
 };
 
 const GRID_COLS = 8;
@@ -48,12 +48,10 @@ const StartCellInput: React.FC<{
   );
   const [isFocused, setIsFocused] = useState(false);
 
-  // Update local state when service position changes externally, but only if not focused
-  useEffect(() => {
-    if (!isFocused) {
-      setValue(positionToIndex(service.gridRow!, service.gridCol!).toString());
-    }
-  }, [service.gridRow, service.gridCol, isFocused]);
+  // Removed useEffect that was causing setState in effect warning.
+  // Instead, we rely on the parent to remount this component (using key) 
+  // or we accept that local state might diverge while typing (which is desired).
+  // If we need to sync from props, we can use a key on the component instance in the parent.
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -458,8 +456,7 @@ const ServiceEditor: React.FC<{
           <div className="flex items-center justify-between">
             <div className="flex-1 mr-2 grid grid-rows-2">
               <Label htmlFor={`startCell-${service.id}`} className="text-sm font-medium">
-                {/* @ts-ignore */}
-                {service.t('grid_configuration.start_cell')}
+                {service.t?.('grid_configuration.start_cell')}
               </Label>
               <span className="text-xs text-muted-foreground">
                 (0-{GRID_ROWS * GRID_COLS - 1})
@@ -468,6 +465,7 @@ const ServiceEditor: React.FC<{
             <div className="flex-1 border-t border-dashed border-border mx-2"></div>
             <div className="flex-1 border-t border-dashed border-border mx-2"></div>
             <StartCellInput
+              key={`${service.id}-${service.gridRow}-${service.gridCol}`}
               service={service}
               max={GRID_ROWS * GRID_COLS - 1}
               onPositionChange={onPositionChange}
@@ -478,8 +476,7 @@ const ServiceEditor: React.FC<{
           <div className="flex items-center justify-between">
             <div className="flex-1 mr-2 grid grid-rows-2">
               <Label htmlFor={`width-${service.id}`} className="text-sm font-medium">
-                {/* @ts-ignore */}
-                {service.t('grid_configuration.width')}
+                {service.t?.('grid_configuration.width')}
               </Label>
               <span className="text-xs text-muted-foreground">
                 (1-{GRID_COLS})
@@ -505,8 +502,7 @@ const ServiceEditor: React.FC<{
           <div className="flex items-center justify-between">
             <div className="flex-1 mr-2 grid grid-rows-2">
               <Label htmlFor={`height-${service.id}`} className="text-sm font-medium">
-                {/* @ts-ignore */}
-                {service.t('grid_configuration.height')}
+                {service.t?.('grid_configuration.height')}
               </Label>
               <span className="text-xs text-muted-foreground">
                 (1-{GRID_ROWS})
@@ -530,8 +526,7 @@ const ServiceEditor: React.FC<{
 
           {conflict && (
             <div className="text-destructive text-sm">
-              {/* @ts-ignore */}
-              {service.t('grid_configuration.overlap_warning')}
+              {service.t?.('grid_configuration.overlap_warning')}
             </div>
           )}
         </div>
@@ -794,8 +789,7 @@ const ServiceGridWithTabs: React.FC<{
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <TabsList className="w-full flex overflow-x-auto">
-        {/* @ts-ignore */}
-        <TabsTrigger value="main-grid" className="flex-1">{services[0]?.t('grid_configuration.main_grid') || 'Main Grid'}</TabsTrigger>
+        <TabsTrigger value="main-grid" className="flex-1">{services[0]?.t?.('grid_configuration.main_grid') || 'Main Grid'}</TabsTrigger>
         {parentServices.map(parent => (
           <TabsTrigger key={`tab-${parent.id}`} value={`grid-${parent.id}`}>
             {parent.name}
@@ -942,7 +936,7 @@ const SimpleGrid: React.FC<{
             {availableServices.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>{services[0]?.t('grid_configuration.available_services')}</CardTitle>
+                  <CardTitle>{services[0]?.t?.('grid_configuration.available_services')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 max-h-96 overflow-y-auto">
                   {availableServices.map(service => (
@@ -960,7 +954,7 @@ const SimpleGrid: React.FC<{
             {services.filter(service => service.gridRow !== null && service.gridCol !== null).length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>{services[0]?.t('grid_configuration.service_settings')}</CardTitle>
+                  <CardTitle>{services[0]?.t?.('grid_configuration.service_settings')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Accordion type="multiple" className="w-full">
@@ -1007,6 +1001,48 @@ const SimpleGrid: React.FC<{
         </div>
       </div>
     </div>
+  );
+};
+
+// Component to display unit list
+const UnitList: React.FC<{
+  units: Unit[];
+  selectedUnitId: string | null;
+  onSelect: (id: string) => void;
+  t: (key: string) => string;
+}> = ({ units, selectedUnitId, onSelect, t }) => {
+  return (
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle>{t('grid_configuration.units')}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
+        {units.map(unit => (
+          <div
+            key={unit.id}
+            className={`p-3 border rounded cursor-pointer hover:bg-accent ${selectedUnitId === unit.id ? 'bg-accent border-primary' : 'bg-background'
+              }`}
+            onClick={() => onSelect(unit.id)}
+          >
+            <div className="flex items-center">
+              <span className="flex-grow">{unit.name}</span>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
+
+// Component to display when no unit is selected
+const NoUnitSelected: React.FC<{ t: (key: string) => string }> = ({ t }) => {
+  return (
+    <Card className="h-full flex items-center justify-center">
+      <CardContent className="text-center p-8">
+        <h3 className="text-xl font-semibold mb-2">{t('grid_configuration.no_unit_selected')}</h3>
+        <p className="text-muted-foreground">{t('grid_configuration.select_unit_desc')}</p>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -1181,71 +1217,226 @@ const ServiceGridEditor: React.FC<ServiceGridEditorProps> = ({ unitId }) => {
     }
   };
 
-  // Component to display unit list
-  const UnitList: React.FC = () => {
-    return (
-      <Card className="h-full">
-        <CardHeader>
-          <CardTitle>{t('grid_configuration.units')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
-          {units.map(unit => (
-            <div
-              key={unit.id}
-              className={`p-3 border rounded cursor-pointer hover:bg-accent ${selectedUnitId === unit.id ? 'bg-accent border-primary' : 'bg-background'
-                }`}
-              onClick={() => setSelectedUnitId(unit.id)}
-            >
-              <div className="flex items-center">
-                <span className="flex-grow">{unit.name}</span>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-    );
-  };
 
-  // Component to display when no unit is selected
-  const NoUnitSelected: React.FC = () => {
-    return (
-      <Card className="h-full flex items-center justify-center">
-        <CardContent className="text-center p-8">
-          <h3 className="text-xl font-semibold mb-2">{t('grid_configuration.no_unit_selected')}</h3>
-          <p className="text-muted-foreground">{t('grid_configuration.select_unit_desc')}</p>
-        </CardContent>
-      </Card>
-    );
-  };
 
-  return (
-    <div className="grid grid-cols-12 gap-6">
-      {/* Left column for units - narrower */}
-      {!unitId && (
-        <div className="col-span-3">
-          <UnitList />
+  interface ServiceGridEditorProps { unitId?: string; }
+  const ServiceGridEditor: React.FC<ServiceGridEditorProps> = ({ unitId }) => {
+    const t = useTranslations('admin');
+    const [selectedUnitId, setSelectedUnitId] = useState<string | null>(unitId || null);
+    const [services, setServices] = useState<ServiceWithPosition[]>([]);
+    const [units, setUnits] = useState<Unit[]>([]);
+    // Initialize loading state based on whether we have an ID
+    const [isLoading, setIsLoading] = useState(!!(unitId || selectedUnitId));
+
+    const updateServiceMutation = useUpdateService();
+
+    // Load units from API
+    // Load units only if unitId prop not provided
+    useEffect(() => {
+      if (!unitId) {
+        const fetchUnits = async () => {
+          try {
+            const unitsData = await unitsApi.getAll();
+            setUnits(unitsData);
+          } catch (error) {
+            console.error('Error fetching units:', error);
+          }
+        };
+        fetchUnits();
+      }
+    }, [unitId]);
+
+    // Load services from API when selectedUnitId changes
+    useEffect(() => {
+      const id = unitId || selectedUnitId;
+      if (id) {
+        // We set loading here, but to avoid "setState in useEffect" warning for synchronous updates,
+        // we rely on the fact that this effect runs on dependency change.
+        // However, to be safe and avoid the warning if it's considered synchronous in some contexts (though it shouldn't be for data fetch),
+        // we can set it. But the warning was specific.
+        // Actually, setting state in useEffect IS standard for data fetching.
+        // The warning might be because we are setting it immediately?
+        // Let's try to set it only if not already loading?
+        // Or just suppress it if it's a false positive for data fetching.
+        // But we can also set isLoading(true) when we change selectedUnitId in the handler.
+
+        setIsLoading(true);
+        unitsApi.getServicesTree(id)
+          .then(servicesTree => {
+            const flattenedServices: ServiceWithPosition[] = [];
+            const flattenTree = (services: Service[], level = 0) => {
+              services.forEach(service => {
+                flattenedServices.push({
+                  ...service,
+                  gridRow: service.gridRow !== undefined && service.gridRow !== null ? Number(service.gridRow) : null,
+                  gridCol: service.gridCol !== undefined && service.gridCol !== null ? Number(service.gridCol) : null,
+                  gridRowSpan: service.gridRowSpan !== undefined && service.gridRowSpan !== null ? Number(service.gridRowSpan) : 1,
+                  gridColSpan: service.gridColSpan !== undefined && service.gridColSpan !== null ? Number(service.gridColSpan) : 1,
+                  children: service.children || [],
+                  // @ts-expect-error - t is not in Service type but we add it for helper components
+                  t: t,
+                });
+                if (service.children && service.children.length > 0) {
+                  flattenTree(service.children, level + 1);
+                }
+              });
+            };
+            flattenTree(servicesTree);
+            setServices(flattenedServices);
+          })
+          .catch(error => { console.error('Error loading services:', error); })
+          .finally(() => setIsLoading(false));
+      } else {
+        setServices([]);
+        setIsLoading(false);
+      }
+    }, [unitId, selectedUnitId, t]); // Added t to dependencies
+
+    const handleUnitSelect = (id: string) => {
+      setSelectedUnitId(id);
+      setIsLoading(true); // Set loading immediately on user interaction
+    };
+
+    const handleAddService = (service: ServiceWithPosition) => {
+      // Update service with position
+      const updatedServices = services.map(s =>
+        s.id === service.id
+          ? { ...s, gridRow: service.gridRow, gridCol: service.gridCol }
+          : s
+      );
+
+      setServices(updatedServices);
+
+      // Save to backend
+      if (service.gridRow !== null && service.gridCol !== null && selectedUnitId) {
+        updateServiceMutation.mutate({
+          id: service.id,
+          gridRow: service.gridRow,
+          gridCol: service.gridCol,
+          gridRowSpan: service.gridRowSpan || 1,
+          gridColSpan: service.gridColSpan || 1
+        });
+      }
+    };
+
+    const handlePropertyChange = (id: string, field: string, value: number | null) => {
+      // Update the service
+      const updatedServices = services.map(service => {
+        if (service.id === id) {
+          switch (field) {
+            case 'gridRow':
+              return { ...service, gridRow: value };
+            case 'gridCol':
+              return { ...service, gridCol: value };
+            case 'gridRowSpan':
+              // Only update if value is not null (for gridRowSpan and gridColSpan)
+              return value !== null ? { ...service, gridRowSpan: value } : service;
+            case 'gridColSpan':
+              // Only update if value is not null (for gridRowSpan and gridColSpan)
+              return value !== null ? { ...service, gridColSpan: value } : service;
+            default:
+              return service;
+          }
+        }
+        return service;
+      });
+
+      setServices(updatedServices);
+
+      // Find the updated service to save
+      const updatedService = updatedServices.find(s => s.id === id);
+      if (updatedService && selectedUnitId) {
+        // Check if this service is in a removal state (either coordinate is null)
+        const isRemovalOperation = updatedService.gridRow === null || updatedService.gridCol === null;
+
+        if (!isRemovalOperation) {
+          // Send updated coordinates to backend (not a removal operation)
+          updateServiceMutation.mutate({
+            id: updatedService.id,
+            gridRow: updatedService.gridRow,
+            gridCol: updatedService.gridCol,
+            gridRowSpan: updatedService.gridRowSpan || 1,
+            gridColSpan: updatedService.gridColSpan || 1
+          });
+        } else {
+          // For removal, we need to bypass the filterEmptyValues function that removes nulls
+          // We'll try to call the API service directly without the filtering function
+          servicesApi.update(updatedService.id, {
+            gridRow: null,
+            gridCol: null,
+            gridRowSpan: updatedService.gridRowSpan || 1,
+            gridColSpan: updatedService.gridColSpan || 1
+          }).then(() => {
+            // Update local state after API call to ensure proper span values are reflected
+            setServices(prevServices =>
+              prevServices.map(service =>
+                service.id === updatedService.id
+                  ? { ...service, gridRowSpan: 1, gridColSpan: 1 }
+                  : service
+              )
+            );
+          });
+        }
+      }
+    };
+
+    const handlePositionChange = (id: string, row: number, col: number) => {
+      // Update the service
+      const updatedServices = services.map(service => {
+        if (service.id === id) {
+          return { ...service, gridRow: row, gridCol: col };
+        }
+        return service;
+      });
+
+      setServices(updatedServices);
+
+      // Find the updated service to save
+      const updatedService = updatedServices.find(s => s.id === id);
+      if (updatedService && selectedUnitId) {
+        updateServiceMutation.mutate({
+          id: updatedService.id,
+          gridRow: updatedService.gridRow,
+          gridCol: updatedService.gridCol,
+          gridRowSpan: updatedService.gridRowSpan || 1,
+          gridColSpan: updatedService.gridColSpan || 1
+        });
+      }
+    };
+
+    return (
+      <div className="grid grid-cols-12 gap-6">
+        {/* Left column for units - narrower */}
+        {!unitId && (
+          <div className="col-span-3">
+            <UnitList
+              units={units}
+              selectedUnitId={selectedUnitId}
+              onSelect={handleUnitSelect}
+              t={t}
+            />
+          </div>
+        )}
+
+        {/* Right column for grid configuration - wider */}
+        <div className={unitId ? "col-span-12" : "col-span-9"}>
+          <Card>
+            <CardContent className="p-6">
+              {selectedUnitId || unitId ? (
+                <SimpleGrid
+                  services={services as unknown as ServiceWithPosition[]}
+                  onAddService={handleAddService}
+                  onPropertyChange={handlePropertyChange}
+                  onPositionChange={handlePositionChange}
+                />
+              ) : (
+                <NoUnitSelected t={t} />
+              )}
+            </CardContent>
+          </Card>
         </div>
-      )}
-
-      {/* Right column for grid configuration - wider */}
-      <div className={unitId ? "col-span-12" : "col-span-9"}>
-        <Card>
-          <CardContent className="p-6">
-            {selectedUnitId || unitId ? (
-              <SimpleGrid
-                services={services as unknown as ServiceWithPosition[]}
-                onAddService={handleAddService}
-                onPropertyChange={handlePropertyChange}
-                onPositionChange={handlePositionChange}
-              />
-            ) : (
-              <NoUnitSelected />
-            )}
-          </CardContent>
-        </Card>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
-export default ServiceGridEditor;
+  export default ServiceGridEditor;

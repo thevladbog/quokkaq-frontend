@@ -24,7 +24,7 @@ interface KioskSettingsSheetProps {
     isOpen: boolean;
     onClose: () => void;
     unitId: string;
-    currentConfig: any;
+    currentConfig: Record<string, any>;
     onLock: () => void;
     isLocked: boolean;
     onUnlock: () => void;
