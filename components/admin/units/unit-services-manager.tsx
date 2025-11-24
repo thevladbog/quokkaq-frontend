@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useUnits,
     useUnitServices,
@@ -383,22 +384,24 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="parentId">{tRoot('forms.fields.parent_service')}</Label>
-                                    <select
-                                        id="parentId"
-                                        name="parentId"
-                                        value={formValues.parentId || ''}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border rounded"
+                                    <Select
+                                        value={formValues.parentId || 'none'}
+                                        onValueChange={(value) => setFormValues(prev => ({ ...prev, parentId: value === 'none' ? '' : value }))}
                                     >
-                                        <option value="">{tRoot('forms.fields.no_parent')}</option>
-                                        {services
-                                            .filter(s => s.id !== editingService?.id) // Don't show current service as option
-                                            .map(service => (
-                                                <option key={service.id} value={service.id}>
-                                                    {service.name} {service.parentId ? `(child of ${services.find(s => s.id === service.parentId)?.name})` : ''}
-                                                </option>
-                                            ))}
-                                    </select>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={tRoot('forms.fields.no_parent')} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">{tRoot('forms.fields.no_parent')}</SelectItem>
+                                            {services
+                                                .filter(s => s.id !== editingService?.id && !s.isLeaf) // Don't show current service as option
+                                                .map(service => (
+                                                    <SelectItem key={service.id} value={service.id}>
+                                                        {service.name} {service.parentId ? `(child of ${services.find(s => s.id === service.parentId)?.name})` : ''}
+                                                    </SelectItem>
+                                                ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
 
                                 <div className="space-y-2">
