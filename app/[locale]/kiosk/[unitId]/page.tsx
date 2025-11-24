@@ -89,6 +89,13 @@ export default function UnitKioskPage() {
     };
   }, [autoCloseTimerId]);
 
+  // Reset grid to main level when ticket modal opens
+  useEffect(() => {
+    if (isTicketModalOpen) {
+      setSelectedServicePath([]);
+    }
+  }, [isTicketModalOpen]);
+
   // Get current services based on selected path
   // unitServicesTree contains flat list of services, so we need to filter by parentId
   const currentServices = () => {
