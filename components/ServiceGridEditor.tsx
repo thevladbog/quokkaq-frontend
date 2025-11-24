@@ -116,7 +116,7 @@ const ServiceItem: React.FC<{
   if (service.gridRow !== null && service.gridCol !== null) return null; // Don't show if already placed
 
   // Check if the service is a parent (has children)
-  const isParentService = service.children && service.children.length > 0;
+  const isParentService = service.isLeaf === false;
 
   return (
     <div
@@ -218,7 +218,7 @@ const GridServiceOverlay: React.FC<{
   const conflict = hasConflict();
 
   // Check if the service is a parent (has children)
-  const isParentService = service.children && service.children.length > 0;
+  const isParentService = service.isLeaf === false;
 
   // Function to remove the service from the grid
   const handleRemoveService = (e: React.MouseEvent) => {
@@ -545,9 +545,9 @@ const ServiceGridWithTabs: React.FC<{
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }> = ({ services, onAddService, onPropertyChange, onPositionChange, activeTab, setActiveTab }) => {
-  // Find all parent services that have children
+  // Find all parent services that have children (or are folders)
   const parentServices = services.filter(service =>
-    service.children && service.children.length > 0
+    service.isLeaf === false
   );
 
   // Get all placed services (for the main grid) - excluding those that are children of parent services
@@ -964,7 +964,7 @@ const SimpleGrid: React.FC<{
                         <AccordionItem key={`editor-${service.id}`} value={`editor-${service.id}`}>
                           <AccordionTrigger className="p-2 hover:bg-accent rounded text-sm">
                             <div className="flex items-center">
-                              {service.children && service.children.length > 0 && (
+                              {service.isLeaf === false && (
                                 <FolderIcon size={16} className="mr-2" />
                               )}
                               {service.name}
