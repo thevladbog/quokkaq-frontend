@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 import { useUnitServicesTree, useCreateTicketInUnit } from '@/lib/hooks';
 import type { Ticket, Service } from '@/lib/api';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { ArrowLeft, Home } from 'lucide-react';
 import dynamic from 'next/dynamic';
 const QRCode = dynamic(() => import('react-qr-code'), { ssr: false });
 import { Button } from '@/components/ui/button';
@@ -288,25 +290,42 @@ export default function UnitKioskPage() {
         </div>
       </div>
 
-      {/* Navigation breadcrumbs */}
-      <div className="mb-4 flex items-center overflow-x-auto">
-        <span className="whitespace-nowrap text-muted-foreground mr-2">
-          #
-        </span>
-        {selectedServicePath.length === 0 ? (
-          <span className="text-muted-foreground">
-            {t('services', { defaultValue: 'Services' })}
+      {/* Navigation breadcrumbs and buttons */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center overflow-x-auto">
+          <span className="whitespace-nowrap text-muted-foreground mr-2">
+            #
           </span>
-        ) : (
-          selectedServicePath.map((service, index) => (
-            <div key={index} className="flex items-center">
-              {index > 0 && <Separator orientation="vertical" className="mx-2 h-4" />}
-              <span className="whitespace-nowrap">
-                {getLocalizedName(service.name, service.nameRu, service.nameEn, locale)}
-              </span>
-            </div>
-          ))
-        )}
+          {selectedServicePath.length === 0 ? (
+            <span className="text-muted-foreground">
+              {t('services', { defaultValue: 'Services' })}
+            </span>
+          ) : (
+            selectedServicePath.map((service, index) => (
+              <div key={index} className="flex items-center">
+                {index > 0 && <Separator orientation="vertical" className="mx-2 h-4" />}
+                <span className="whitespace-nowrap">
+                  {getLocalizedName(service.name, service.nameRu, service.nameEn, locale)}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 ml-4">
+          {selectedServicePath.length > 1 && (
+            <Button variant="outline" size="sm" onClick={() => setSelectedServicePath([])}>
+              <Home className="mr-2 h-4 w-4" />
+              {t('home', { defaultValue: 'Home' })}
+            </Button>
+          )}
+          {selectedServicePath.length > 0 && (
+            <Button variant="outline" size="sm" onClick={handleGoBack}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t('back', { defaultValue: 'Back' })}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Services grid */}
@@ -333,15 +352,15 @@ export default function UnitKioskPage() {
                 }}
               >
                 <Card
-                  className="h-full w-full cursor-pointer transition-all hover:shadow-lg flex flex-col border-0"
+                  className="h-full w-full cursor-pointer transition-all hover:shadow-lg flex flex-col border-0 relative overflow-hidden"
                   onClick={() => handleServiceSelection(service)}
                   style={{
                     backgroundColor: service.backgroundColor || undefined,
                     color: service.textColor || undefined,
                   }}
                 >
-                  <CardHeader className="flex-1 flex items-center justify-center p-3">
-                    <CardTitle className="text-lg font-semibold text-center wrap-break-word px-1">
+                  <CardHeader className="flex-1 flex flex-col items-center justify-center p-3 overflow-hidden min-h-0 relative z-10">
+                    <CardTitle className="text-2xl font-semibold text-center wrap-break-word px-1 line-clamp-2 shrink-0">
                       {getLocalizedName(
                         service.name,
                         service.nameRu || '',
@@ -350,9 +369,9 @@ export default function UnitKioskPage() {
                       )}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-2 pt-0">
+                  <CardContent className="p-2 pt-0 shrink-0 relative z-10">
                     {service.description && (
-                      <p className="text-base text-center text-muted-foreground wrap-break-word px-1">
+                      <p className="text-base text-center text-muted-foreground wrap-break-word px-1 line-clamp-2">
                         {getLocalizedName(
                           service.description,
                           service.descriptionRu,
@@ -362,6 +381,17 @@ export default function UnitKioskPage() {
                       </p>
                     )}
                   </CardContent>
+                  {service.imageUrl && (
+                    <div className="absolute inset-0 z-0 p-4">
+                      <Image
+                        src={service.imageUrl}
+                        alt={service.name}
+                        fill
+                        className="object-contain opacity-20"
+                        unoptimized
+                      />
+                    </div>
+                  )}
                 </Card>
               </div>
             );

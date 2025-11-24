@@ -14,6 +14,7 @@ import {
     useDeleteService
 } from '@/lib/hooks';
 import { useTranslations } from 'next-intl';
+import { ImageUpload } from '@/components/ui/image-upload';
 
 interface Service {
     id: string;
@@ -349,13 +350,11 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="imageUrl">{tRoot('forms.fields.image_url')}</Label>
-                                    <Input
-                                        id="imageUrl"
-                                        name="imageUrl"
-                                        type="url"
-                                        value={formValues.imageUrl || ''}
-                                        onChange={handleInputChange}
+                                    <ImageUpload
+                                        label={tRoot('forms.fields.image_url')}
+                                        value={formValues.imageUrl}
+                                        onChange={(url) => setFormValues(prev => ({ ...prev, imageUrl: url }))}
+                                        onRemove={() => setFormValues(prev => ({ ...prev, imageUrl: '' }))}
                                     />
                                 </div>
 
