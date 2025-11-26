@@ -521,6 +521,11 @@ function StaffTicketItem({ ticket, onCall, disabled, t }: { ticket: Ticket, onCa
                     {ticket.maxWaitingTime && (
                         <span className="ml-2 opacity-70">Max: {formatTime(ticket.maxWaitingTime)}</span>
                     )}
+                    {ticket.preRegistration && (
+                        <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] rounded-full font-medium">
+                            {t('pre_registration.badge', { defaultValue: 'PRE' })}
+                        </span>
+                    )}
                 </div>
             </div>
             <div className="flex items-center gap-2 relative z-10">
@@ -611,6 +616,25 @@ function CurrentTicketDisplay({ ticket, t }: { ticket: Ticket, t: (key: string, 
                         <div className="text-sm font-mono text-muted-foreground">
                             {formatStaticTime(ticket.maxWaitingTime)}
                         </div>
+                    </div>
+                )}
+
+                {ticket.preRegistration && (
+                    <div className="mt-2 pt-2 border-t">
+                        <div className="text-xs text-muted-foreground uppercase tracking-wider mb-0.5">
+                            {t('pre_registration.title', { defaultValue: 'Pre-registration' })}
+                        </div>
+                        <div className="text-sm font-medium">
+                            {ticket.preRegistration.customerName}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                            {ticket.preRegistration.customerPhone}
+                        </div>
+                        {ticket.preRegistration.comment && (
+                            <div className="text-xs italic mt-1">
+                                "{ticket.preRegistration.comment}"
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

@@ -22,6 +22,7 @@ import { useUnit } from '@/lib/hooks';
 import { PinCodeModal } from '@/components/kiosk/pin-code-modal';
 import { KioskSettingsSheet } from '@/components/kiosk/kiosk-settings-sheet';
 import { LockScreen } from '@/components/kiosk/lock-screen';
+import { PreRegRedemptionModal } from '@/components/kiosk/PreRegRedemptionModal';
 
 export default function UnitKioskPage() {
   const params = useParams() as { unitId?: string };
@@ -50,6 +51,7 @@ export default function UnitKioskPage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [clockClicks, setClockClicks] = useState(0);
+  const [isRedemptionModalOpen, setIsRedemptionModalOpen] = useState(false);
 
   // Custom colors from config
   const isCustomColorsEnabled = unit?.config?.kiosk?.isCustomColorsEnabled || false;
@@ -281,7 +283,17 @@ export default function UnitKioskPage() {
         </div>
 
         {/* Language toggle and Logo on the right */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-4 md:gap-8">
+          {unit?.config?.kiosk?.isPreRegistrationEnabled && (
+            <Button
+              variant="secondary"
+              className="h-12 md:h-16 md:w-50 text-xl"
+              onClick={() => setIsRedemptionModalOpen(true)}
+            >
+              {t('pre_registration.button', { defaultValue: 'I have a code' })}
+            </Button>
+          )}
+
           <KioskLanguageSwitcher className="h-12 w-12 md:h-16 md:w-16 text-xl" />
           {/* ThemeToggle removed as per request */}
 
@@ -553,6 +565,33 @@ export default function UnitKioskPage() {
       <LockScreen
         isLocked={isLocked}
         onUnlockRequest={() => setIsPinModalOpen(true)}
+      />
+
+      <PreRegRedemptionModal
+        isOpen={isRedemptionModalOpen}
+        onClose={() => setIsRedemptionModalOpen(false)}
+        unitId={unitId!}
+        onSuccess={(ticket) => {
+          setCreatedTicket(ticket);
+          setIsTicketModalOpen(true);
+          // Start auto-close timer logic (copied from handleServiceSelection)
+          setCountdown(5);
+          if (autoCloseTimerId) {
+            clearInterval(autoCloseTimerId);
+          }
+          const timer = setInterval(() => {
+            setCountdown((prev) => {
+              if (prev <= 1) {
+                setIsTicketModalOpen(false);
+                setCreatedTicket(null);
+                clearInterval(timer);
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+          setAutoCloseTimerId(timer);
+        }}
       />
     </div>
   );

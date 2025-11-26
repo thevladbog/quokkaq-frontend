@@ -22,6 +22,7 @@ interface KioskConfig {
     isPrintEnabled?: boolean;
     logoUrl?: string;
     feedbackUrl?: string;
+    isPreRegistrationEnabled?: boolean;
     isCustomColorsEnabled?: boolean;
     headerColor?: string;
     bodyColor?: string;
@@ -49,6 +50,7 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
     const [isPrintEnabled, setIsPrintEnabled] = useState(kioskConfig.isPrintEnabled ?? true);
     const [logoUrl, setLogoUrl] = useState(kioskConfig.logoUrl || '');
     const [feedbackUrl, setFeedbackUrl] = useState(kioskConfig.feedbackUrl || '');
+    const [isPreRegistrationEnabled, setIsPreRegistrationEnabled] = useState(kioskConfig.isPreRegistrationEnabled ?? false);
 
     // New color settings
     const [isCustomColorsEnabled, setIsCustomColorsEnabled] = useState(kioskConfig.isCustomColorsEnabled || false);
@@ -75,6 +77,7 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
                 isPrintEnabled,
                 logoUrl,
                 feedbackUrl,
+                isPreRegistrationEnabled,
                 isCustomColorsEnabled,
                 headerColor,
                 bodyColor,
@@ -239,6 +242,15 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
                             />
                         </div>
 
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="enable-pre-registration">{t('enable_pre_registration', { defaultValue: 'Enable Pre-registration Redemption' })}</Label>
+                            <Switch
+                                id="enable-pre-registration"
+                                checked={isPreRegistrationEnabled}
+                                onCheckedChange={setIsPreRegistrationEnabled}
+                            />
+                        </div>
+
                         {isPrintEnabled && (
                             <>
                                 <div className="grid grid-cols-3 gap-4">
@@ -291,6 +303,6 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
                     </Button>
                 </CardContent>
             </Card>
-        </div>
+        </div >
     );
 }
