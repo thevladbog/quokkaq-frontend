@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 
 type Props = {
     children: React.ReactNode;
-    params: Promise<{ locale: string; ticketId: string }>;
+    params: Promise<{ locale: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -15,6 +15,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
 }
 
-export default function TicketLayout({ children }: Props) {
+export default function TicketLayout({ children, params }: Props) {
     return <>{children}</>;
 }

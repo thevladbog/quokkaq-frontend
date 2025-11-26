@@ -3,8 +3,9 @@ import { getTranslations } from 'next-intl/server';
 
 type Props = {
     children: React.ReactNode;
-    params: Promise<{ locale: string; token: string }>;
+    params: Promise<{ locale: string; token?: string }>;
 };
+
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { locale } = await params;
@@ -15,6 +16,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
 }
 
-export default function RegisterLayout({ children }: Props) {
+export default function RegisterLayout({ children, params }: Props) {
     return <>{children}</>;
 }
