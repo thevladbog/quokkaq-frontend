@@ -14,9 +14,9 @@ import {
 import { shiftApi, unitsApi, Ticket, Service } from '@/lib/api';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Users, ListChecks, Clock, AlertTriangle, XCircle } from 'lucide-react';
+import { Loader2, Users, ListChecks, Clock, AlertTriangle, XCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
-import ProtectedSidebarLayout from '@/components/ProtectedSidebarLayout';
+import { PreRegistrationDetailsModal } from '@/components/staff/PreRegistrationDetailsModal';
 
 export default function ShiftDashboardPage({ params }: { params: Promise<{ unitId: string }> }) {
   const { unitId } = use(params);
@@ -25,6 +25,13 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
   const [showEODDialog, setShowEODDialog] = useState(false);
   const [forceReleaseDialogOpen, setForceReleaseDialogOpen] = useState(false);
   const [selectedCounter, setSelectedCounter] = useState<{ id: string; name: string } | null>(null);
+  const [detailsTicket, setDetailsTicket] = useState<Ticket | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  const openDetails = (ticket: Ticket) => {
+    setDetailsTicket(ticket);
+    setIsDetailsOpen(true);
+  };
 
   // Fetch unit info
   const { data: unit } = useQuery({
@@ -112,7 +119,7 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
   };
 
   return (
-    <ProtectedSidebarLayout allowedRoles={['admin', 'supervisor']}>
+    <>
       <div className="container mx-auto p-4 max-w-7xl space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -203,7 +210,7 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
               ) : queue && queue.length > 0 ? (
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {queue.map((ticket) => (
-                    <TicketListItem key={ticket.id} ticket={ticket} />
+                    <TicketListItem key={ticket.id} ticket={ticket} onShowDetails={() => openDetails(ticket)} t={t} />
                   ))}
                 </div>
               ) : (
@@ -340,13 +347,18 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </ProtectedSidebarLayout>
+
+      <PreRegistrationDetailsModal
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+        ticket={detailsTicket}
+      /></>
   );
 }
 
 import { useTicketTimer } from '@/lib/ticket-timer';
 
-function TicketListItem({ ticket }: { ticket: Ticket & { service?: Service } }) {
+function TicketListItem({ ticket, onShowDetails, t }: { ticket: Ticket & { service?: Service }, onShowDetails: () => void, t: (key: string, values?: Record<string, any>) => string }) {
   const { background, formatTime, elapsed } = useTicketTimer(ticket.createdAt || undefined, ticket.maxWaitingTime);
 
   return (
@@ -358,12 +370,37 @@ function TicketListItem({ ticket }: { ticket: Ticket & { service?: Service } }) 
         <div className="font-semibold">{ticket.queueNumber}</div>
         <div className="text-sm text-muted-foreground">
           {ticket.service?.nameRu || ticket.service?.name}
+          {ticket.preRegistration && (
+            <div className="flex items-center gap-2 mt-1">
+              <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] rounded-full font-medium">
+                {t('pre_registration.badge', { defaultValue: 'PRE' })}
+              </span>
+              <span className="text-xs font-medium text-blue-800">
+                {ticket.preRegistration.time}
+              </span>
+            </div>
+          )}
         </div>
       </div>
-      <div className="text-sm text-muted-foreground relative z-10 text-right">
-        <div>{formatTime(elapsed)}</div>
-        {ticket.maxWaitingTime && (
-          <div className="text-xs opacity-70">Max: {formatTime(ticket.maxWaitingTime)}</div>
+      <div className="flex items-center gap-2 relative z-10">
+        <div className="text-sm text-muted-foreground text-right">
+          <div>{formatTime(elapsed)}</div>
+          {ticket.maxWaitingTime && (
+            <div className="text-xs opacity-70">Max: {formatTime(ticket.maxWaitingTime)}</div>
+          )}
+        </div>
+        {ticket.preRegistration && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onShowDetails();
+            }}
+          >
+            <Info className="h-4 w-4" />
+          </Button>
         )}
       </div>
     </div>

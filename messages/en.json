@@ -431,7 +431,20 @@
     "no_counters": "No counters found",
     "you": "You",
     "occupiedByYou": "Occupied by You (Continue)",
-    "occupiedUnknown": "Occupied"
+    "occupiedUnknown": "Occupied",
+    "pre_registration": {
+      "badge": "PRE",
+      "title": "Pre-registration",
+      "details_title": "Pre-registration Details",
+      "details_description": "Information about the pre-registered appointment.",
+      "customer_name": "Customer Name",
+      "customer_phone": "Phone",
+      "code": "Code",
+      "date": "Date",
+      "time": "Time",
+      "comment": "Comment",
+      "close": "Close"
+    }
   },
   "kiosk": {
     "title": "Welcome to QuokkaQ",
@@ -671,7 +684,10 @@
     "errorEOD": "Failed to execute End of Day",
     "processing": "Processing...",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "pre_registration": {
+      "badge": "Запись"
+    }
   },
   "invitations": {
     "title": "Invitations",
@@ -773,5 +789,40 @@
     "success": "Administrator created successfully! Redirecting...",
     "error": "Setup failed",
     "passwords_dont_match": "Passwords do not match"
+  },
+  "pageTitles": {
+    "home": "QuokkaQ - Queue Management System",
+    "login": "Login - QuokkaQ",
+    "register": "Registration - QuokkaQ",
+    "forgotPassword": "Forgot Password - QuokkaQ",
+    "resetPassword": "Reset Password - QuokkaQ",
+    "setup": "System Setup - QuokkaQ",
+    "admin": {
+      "dashboard": "Admin Panel - QuokkaQ",
+      "units": "Units - Admin - QuokkaQ",
+      "unitDetails": "Unit Settings - QuokkaQ",
+      "gridConfiguration": "Grid Configuration - Admin - QuokkaQ",
+      "invitations": "Invitations - Admin - QuokkaQ",
+      "templates": "Message Templates - Admin - QuokkaQ",
+      "preRegistrations": "Pre-registrations - Admin - QuokkaQ",
+      "users": "Users & Roles - Admin - QuokkaQ"
+    },
+    "staff": {
+      "selection": "Staff Panel - QuokkaQ",
+      "counter": "Staff Panel - QuokkaQ"
+    },
+    "supervisor": {
+      "selection": "Supervisor Panel - QuokkaQ",
+      "dashboard": "Shift Management - QuokkaQ"
+    },
+    "kiosk": {
+      "selection": "Kiosk - QuokkaQ",
+      "service": "Kiosk - QuokkaQ"
+    },
+    "screen": {
+      "selection": "Public Screen - QuokkaQ",
+      "display": "Queue Display - QuokkaQ"
+    },
+    "ticket": "Your Ticket - QuokkaQ"
   }
 }

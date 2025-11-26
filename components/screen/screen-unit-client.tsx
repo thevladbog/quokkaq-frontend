@@ -2,15 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Ticket, ticketsApi, unitsApi, Unit, Material, UnitConfig } from '@/lib/api';
+import { Ticket, ticketsApi, unitsApi, Material, UnitConfig } from '@/lib/api';
 import { useUnit } from '@/lib/hooks';
 import { socketClient } from '@/lib/socket';
-import { AdsPanel } from '@/components/screen/ads-panel';
 import { AdPlayer } from '@/components/screen/ad-player';
 import { CalledTicketsTable } from '@/components/screen/called-tickets-table';
 import { QueueTicker } from '@/components/screen/queue-ticker';
 import { CallNotification } from '@/components/screen/call-notification';
 import { Spinner } from '@/components/ui/spinner';
+import Image from 'next/image';
 
 interface ScreenUnitClientProps {
     unitId: string;
@@ -150,7 +150,6 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
     const adConfig = config?.adScreen;
     const showAds = adConfig && adConfig.width > 0 && materials.length > 0;
     const adWidth = adConfig?.width || 0;
-    const tableWidth = 100 - adWidth;
 
     // Custom colors
     const isCustomColorsEnabled = adConfig?.isCustomColorsEnabled || false;
@@ -164,8 +163,8 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
                 <div className="flex items-center gap-4">
                     {(config?.adScreen?.logoUrl || config?.logoUrl) && (
                         <div className="relative h-12 md:h-16 w-auto">
-                            <img
-                                src={config?.adScreen?.logoUrl || config?.logoUrl}
+                            <Image
+                                src={config?.adScreen?.logoUrl || config?.logoUrl || ''}
                                 alt="Logo"
                                 className="h-full w-auto object-contain"
                             />

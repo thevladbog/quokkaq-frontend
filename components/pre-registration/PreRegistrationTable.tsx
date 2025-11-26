@@ -1,8 +1,9 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import { enUS, ru } from 'date-fns/locale';
 import { Edit, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,7 +15,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { preRegistrationsApi, PreRegistration } from '@/lib/api';
+import { preRegistrationsApi, unitsApi, PreRegistration } from '@/lib/api';
 
 interface PreRegistrationTableProps {
     unitId: string;
@@ -24,11 +25,55 @@ interface PreRegistrationTableProps {
 export function PreRegistrationTable({ unitId, onEdit }: PreRegistrationTableProps) {
     const t = useTranslations('admin.pre_registrations');
     const tCommon = useTranslations('common');
+    const locale = useLocale();
+    const dateLocale = locale === 'ru' ? ru : enUS;
 
     const { data: preRegistrations, isLoading } = useQuery({
         queryKey: ['pre-registrations', unitId],
         queryFn: () => preRegistrationsApi.getByUnitId(unitId),
     });
+
+    // Fetch services for building hierarchy
+    const { data: services } = useQuery({
+        queryKey: ['unit-services', unitId],
+        queryFn: () => unitsApi.getServices(unitId),
+    });
+
+    // Helper function to get localized service name with hierarchy
+    const getLocalizedServiceName = (service: any) => {
+        if (!service) return '';
+
+        const allServices = services || [];
+
+        const getName = (s: any) => {
+            if (locale === 'ru' && s.nameRu) return s.nameRu;
+            if (locale === 'en' && s.nameEn) return s.nameEn;
+            return s.name;
+        };
+
+        // Build hierarchy path
+        const buildPath = (s: any): string[] => {
+            const path: string[] = [];
+            let current = s;
+
+            while (current) {
+                path.unshift(getName(current));
+                // Try to get parent from parent field or find by parentId
+                if (current.parent) {
+                    current = current.parent;
+                } else if (current.parentId && allServices.length > 0) {
+                    current = allServices.find((srv: any) => srv.id === current.parentId);
+                } else {
+                    current = null;
+                }
+            }
+
+            return path;
+        };
+
+        const path = buildPath(service);
+        return path.join(' → ');
+    };
 
     if (isLoading) {
         return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>;
@@ -69,7 +114,7 @@ export function PreRegistrationTable({ unitId, onEdit }: PreRegistrationTablePro
                         <TableRow key={preReg.id}>
                             <TableCell>
                                 <div className="flex flex-col">
-                                    <span className="font-medium">{format(new Date(preReg.date), 'MMM d, yyyy')}</span>
+                                    <span className="font-medium">{format(new Date(preReg.date), 'PPP', { locale: dateLocale })}</span>
                                     <span className="text-xs text-muted-foreground">{preReg.time}</span>
                                 </div>
                             </TableCell>
@@ -80,7 +125,7 @@ export function PreRegistrationTable({ unitId, onEdit }: PreRegistrationTablePro
                                     <span className="text-xs text-muted-foreground">{preReg.customerPhone}</span>
                                 </div>
                             </TableCell>
-                            <TableCell>{preReg.service?.name}</TableCell>
+                            <TableCell>{getLocalizedServiceName(preReg.service)}</TableCell>
                             <TableCell>{getStatusBadge(preReg.status)}</TableCell>
                             <TableCell className="text-right">
                                 <Button variant="ghost" size="icon" onClick={() => onEdit(preReg)} disabled={preReg.status !== 'created'}>

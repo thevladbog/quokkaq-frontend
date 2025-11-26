@@ -19,6 +19,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "QuokkaQ - Queue Management System",
   description: "Multi-tenant queue management system for organizations",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({

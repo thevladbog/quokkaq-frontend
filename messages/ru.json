@@ -431,7 +431,20 @@
     "no_counters": "Рабочие места не найдены",
     "you": "Вы",
     "occupiedByYou": "Занято вами (Продолжить)",
-    "occupiedUnknown": "Занято"
+    "occupiedUnknown": "Занято",
+    "pre_registration": {
+      "badge": "ЗАПИСЬ",
+      "title": "Предварительная запись",
+      "details_title": "Детали предварительной записи",
+      "details_description": "Информация о предварительной записи.",
+      "customer_name": "Имя клиента",
+      "customer_phone": "Телефон",
+      "code": "Код",
+      "date": "Дата",
+      "time": "Время",
+      "comment": "Комментарий",
+      "close": "Закрыть"
+    }
   },
   "kiosk": {
     "title": "Добро пожаловать в QuokkaQ",
@@ -672,7 +685,10 @@
     "errorEOD": "Не удалось выполнить завершение дня",
     "processing": "Обработка...",
     "cancel": "Отмена",
-    "confirm": "Подтвердить"
+    "confirm": "Подтвердить",
+    "pre_registration": {
+      "badge": "Запись"
+    }
   },
   "invitations": {
     "title": "Приглашения",
@@ -774,5 +790,40 @@
     "success": "Администратор успешно создан! Перенаправление...",
     "error": "Ошибка настройки",
     "passwords_dont_match": "Пароли не совпадают"
+  },
+  "pageTitles": {
+    "home": "QuokkaQ - Система управления очередями",
+    "login": "Вход - QuokkaQ",
+    "register": "Регистрация - QuokkaQ",
+    "forgotPassword": "Восстановление пароля - QuokkaQ",
+    "resetPassword": "Сброс пароля - QuokkaQ",
+    "setup": "Настройка системы - QuokkaQ",
+    "admin": {
+      "dashboard": "Панель администратора - QuokkaQ",
+      "units": "Подразделения - Админ - QuokkaQ",
+      "unitDetails": "Настройки подразделения - QuokkaQ",
+      "gridConfiguration": "Конфигурация сетки - Админ - QuokkaQ",
+      "invitations": "Приглашения - Админ - QuokkaQ",
+      "templates": "Шаблоны сообщений - Админ - QuokkaQ",
+      "preRegistrations": "Предварительная запись - Админ - QuokkaQ",
+      "users": "Пользователи и роли - Админ - QuokkaQ"
+    },
+    "staff": {
+      "selection": "Панель сотрудника - QuokkaQ",
+      "counter": "Панель сотрудника - QuokkaQ"
+    },
+    "supervisor": {
+      "selection": "Панель старшего смены - QuokkaQ",
+      "dashboard": "Управление сменой - QuokkaQ"
+    },
+    "kiosk": {
+      "selection": "Киоск - QuokkaQ",
+      "service": "Киоск - QuokkaQ"
+    },
+    "screen": {
+      "selection": "Общий экран - QuokkaQ",
+      "display": "Отображение очереди - QuokkaQ"
+    },
+    "ticket": "Ваш талон - QuokkaQ"
   }
 }

@@ -115,6 +115,8 @@ const TicketModelSchema = z.object({
     customerName: z.string(),
     customerPhone: z.string(),
     code: z.string(),
+    date: z.string(),
+    time: z.string(),
     comment: z.string().optional(),
   }).nullable().optional(),
 });

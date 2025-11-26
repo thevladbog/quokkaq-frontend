@@ -19,9 +19,9 @@ const ProtectedSidebarLayout = ({ children, allowedRoles, requiredPermission, fa
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <main className="p-4 md:p-8">
+          <div className="p-4 md:p-8">
             {children}
-          </main>
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </ProtectedRoute>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useMutation } from '@tanstack/react-query';
-import { Loader2, X, Delete } from 'lucide-react';
+import { Loader2, Delete } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,7 +11,6 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogClose,
 } from "@/components/ui/dialog"
 import { preRegistrationsApi, Ticket } from '@/lib/api';
 
@@ -49,7 +48,7 @@ export function PreRegRedemptionModal({ isOpen, onClose, unitId, onSuccess }: Pr
                 }
             }
         },
-        onError: (err: any) => {
+        onError: (_err: any) => {
             // Handle network errors or unexpected 500s
             setError(t('invalid_code', { defaultValue: 'Invalid code. Please try again.' }));
         },
@@ -128,7 +127,7 @@ export function PreRegRedemptionModal({ isOpen, onClose, unitId, onSuccess }: Pr
                             className="h-24"
                             onClick={handleBackspace}
                         >
-                            <Delete className="h-10 w-10" />
+                            <Delete className="!size-12" />
                         </Button>
                     </div>
 

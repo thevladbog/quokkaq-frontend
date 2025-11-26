@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -24,6 +24,7 @@ export function PreRegistrationForm({ unitId, initialData, onSuccess, onCancel }
     const t = useTranslations('admin.pre_registrations');
     const tCommon = useTranslations('common');
     const queryClient = useQueryClient();
+    const locale = useLocale();
 
     const [serviceId, setServiceId] = useState(initialData?.serviceId || '');
     const [date, setDate] = useState(initialData?.date || '');
@@ -31,6 +32,42 @@ export function PreRegistrationForm({ unitId, initialData, onSuccess, onCancel }
     const [customerName, setCustomerName] = useState(initialData?.customerName || '');
     const [customerPhone, setCustomerPhone] = useState(initialData?.customerPhone || '');
     const [comment, setComment] = useState(initialData?.comment || '');
+
+    // Helper function to get localized service name with hierarchy
+    const getLocalizedServiceName = (service: any, servicesList?: any[]) => {
+        if (!service) return '';
+
+        const allServices = servicesList || services || [];
+
+        const getName = (s: any) => {
+            if (locale === 'ru' && s.nameRu) return s.nameRu;
+            if (locale === 'en' && s.nameEn) return s.nameEn;
+            return s.name;
+        };
+
+        // Build hierarchy path
+        const buildPath = (s: any): string[] => {
+            const path: string[] = [];
+            let current = s;
+
+            while (current) {
+                path.unshift(getName(current));
+                // Try to get parent from parent field or find by parentId
+                if (current.parent) {
+                    current = current.parent;
+                } else if (current.parentId && allServices.length > 0) {
+                    current = allServices.find((srv: any) => srv.id === current.parentId);
+                } else {
+                    current = null;
+                }
+            }
+
+            return path;
+        };
+
+        const path = buildPath(service);
+        return path.join(' → ');
+    };
 
     // Fetch services
     const { data: services } = useQuery({
@@ -103,7 +140,7 @@ export function PreRegistrationForm({ unitId, initialData, onSuccess, onCancel }
                     <SelectContent>
                         {services?.filter(s => s.prebook !== false).map(service => (
                             <SelectItem key={service.id} value={service.id}>
-                                {service.name}
+                                {getLocalizedServiceName(service)}
                             </SelectItem>
                         ))}
                     </SelectContent>

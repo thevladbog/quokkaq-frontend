@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Loader2, Save } from 'lucide-react';
@@ -27,6 +27,43 @@ export function SlotConfiguration({ unitId }: SlotConfigurationProps) {
     const t = useTranslations('admin.slots'); // Assuming 'slots' namespace exists or will be added
     const tCommon = useTranslations('common');
     const queryClient = useQueryClient();
+    const locale = useLocale();
+
+    // Helper function to get localized service name with hierarchy
+    const getLocalizedServiceName = (service: any, servicesList?: any[]) => {
+        if (!service) return '';
+
+        const allServices = servicesList || services || [];
+
+        const getName = (s: any) => {
+            if (locale === 'ru' && s.nameRu) return s.nameRu;
+            if (locale === 'en' && s.nameEn) return s.nameEn;
+            return s.name;
+        };
+
+        // Build hierarchy path
+        const buildPath = (s: any): string[] => {
+            const path: string[] = [];
+            let current = s;
+
+            while (current) {
+                path.unshift(getName(current));
+                // Try to get parent from parent field or find by parentId
+                if (current.parent) {
+                    current = current.parent;
+                } else if (current.parentId && allServices.length > 0) {
+                    current = allServices.find((srv: any) => srv.id === current.parentId);
+                } else {
+                    current = null;
+                }
+            }
+
+            return path;
+        };
+
+        const path = buildPath(service);
+        return path.join(' → ');
+    };
 
     // --- Queries ---
 
@@ -245,8 +282,8 @@ export function SlotConfiguration({ unitId }: SlotConfigurationProps) {
                     <CardDescription>{t('capacity_desc', { defaultValue: 'Set the maximum number of appointments per slot for each service.' })}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <div className="w-full max-w-xs">
+                    <div className="flex items-end justify-between gap-4">
+                        <div className="w-full max-w-xs space-y-2">
                             <Label>{t('select_service', { defaultValue: 'Select Service' })}</Label>
                             <Select value={selectedServiceId} onValueChange={setSelectedServiceId}>
                                 <SelectTrigger>
@@ -255,13 +292,13 @@ export function SlotConfiguration({ unitId }: SlotConfigurationProps) {
                                 <SelectContent>
                                     {services?.filter(s => s.prebook !== false).map(service => (
                                         <SelectItem key={service.id} value={service.id}>
-                                            {service.name}
+                                            {getLocalizedServiceName(service)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
-                        <Button className="mt-6" onClick={handleCapacitiesSave} disabled={updateCapacitiesMutation.isPending || !selectedServiceId}>
+                        <Button onClick={handleCapacitiesSave} disabled={updateCapacitiesMutation.isPending || !selectedServiceId}>
                             {updateCapacitiesMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             <Save className="mr-2 h-4 w-4" />
                             {t('save_capacities', { defaultValue: 'Save Capacities' })}
@@ -314,7 +351,7 @@ export function SlotConfiguration({ unitId }: SlotConfigurationProps) {
             </Card>
 
             <GenerationSection unitId={unitId} t={t} />
-            <DayManagementSection unitId={unitId} t={t} services={services || []} />
+            <DayManagementSection unitId={unitId} t={t} services={services || []} getLocalizedServiceName={getLocalizedServiceName} />
         </div>
     );
 }
@@ -359,7 +396,7 @@ function GenerationSection({ unitId, t }: { unitId: string, t: any }) {
     );
 }
 
-function DayManagementSection({ unitId, t, services }: { unitId: string, t: any, services: any[] }) {
+function DayManagementSection({ unitId, t, services, getLocalizedServiceName }: { unitId: string, t: any, services: any[], getLocalizedServiceName: (service: any, servicesList?: any[]) => string }) {
     const [date, setDate] = useState('');
     const [details, setDetails] = useState<any>(null);
     const queryClient = useQueryClient();
@@ -477,7 +514,7 @@ function DayManagementSection({ unitId, t, services }: { unitId: string, t: any,
                                     if (!service) return null;
                                     return (
                                         <div key={serviceId} className="space-y-2">
-                                            <h4 className="font-semibold">{service.name}</h4>
+                                            <h4 className="font-semibold">{getLocalizedServiceName(service, services)}</h4>
                                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                                                 {slots.map((slot: any) => (
                                                     <div key={slot.id} className="border p-2 rounded text-center space-y-1">

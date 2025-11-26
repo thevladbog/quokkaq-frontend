@@ -299,7 +299,7 @@ export default function UnitKioskPage() {
 
           {unit?.config?.kiosk?.logoUrl && (
             <div className="relative h-12 md:h-16 w-auto">
-              <img
+              <Image
                 src={unit.config.kiosk.logoUrl}
                 alt="Logo"
                 className="h-full w-auto object-contain"
@@ -457,14 +457,6 @@ export default function UnitKioskPage() {
         })}
       </div>
 
-      {/* Status message - REMOVED as per request */}
-      {/* {message && (
-        <div className={`mt-4 p-3 rounded text-center ${message.includes('successfully') ? 'bg-green-500/10 text-green-500' : 'bg-destructive/10 text-destructive'
-          }`}>
-          {message}
-        </div>
-      )} */}
-
       {/* Ticket modal */}
       <Dialog open={isTicketModalOpen} onOpenChange={(open) => {
         setIsTicketModalOpen(open);
@@ -481,7 +473,7 @@ export default function UnitKioskPage() {
             {/* Logo (top) */}
             {unit?.config?.kiosk?.logoUrl && (
               <div className="mb-4 h-16 w-auto">
-                <img
+                <Image
                   src={unit.config.kiosk.logoUrl}
                   alt="Logo"
                   className="h-full w-auto object-contain"

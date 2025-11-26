@@ -15,16 +15,17 @@ import {
     useConfirmArrivalTicket,
     useUnitServices,
 } from '@/lib/hooks';
-import { countersApi, unitsApi, servicesApi, Ticket } from '@/lib/api';
+import { countersApi, unitsApi, Ticket } from '@/lib/api';
 import { socketClient } from '@/lib/socket';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/src/i18n/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { LogOut, ArrowRightLeft, Plus } from 'lucide-react';
+import { LogOut, ArrowRightLeft, Plus, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useTicketTimer } from '@/lib/ticket-timer';
+import { PreRegistrationDetailsModal } from '@/components/staff/PreRegistrationDetailsModal';
 
 interface StaffWorkspacePageProps {
     params: Promise<{
@@ -39,6 +40,13 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
     const t = useTranslations('staff');
     const router = useRouter();
     const [inProgressTicketId, setInProgressTicketId] = useState<string | null>(null);
+    const [detailsTicket, setDetailsTicket] = useState<Ticket | null>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+    const openDetails = (ticket: Ticket) => {
+        setDetailsTicket(ticket);
+        setIsDetailsOpen(true);
+    };
 
     // Fetch Unit Info for display
     const { data: unit } = useQuery({
@@ -362,6 +370,12 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
                 </DialogContent>
             </Dialog>
 
+            <PreRegistrationDetailsModal
+                isOpen={isDetailsOpen}
+                onClose={() => setIsDetailsOpen(false)}
+                ticket={detailsTicket}
+            />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <Card>
                     <CardHeader>
@@ -370,7 +384,7 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
                     </CardHeader>
                     <CardContent>
                         {currentTicket ? (
-                            <CurrentTicketDisplay ticket={currentTicket} t={t} />
+                            <CurrentTicketDisplay ticket={currentTicket} t={t} onShowDetails={() => openDetails(currentTicket)} />
                         ) : (
                             <div className="text-center text-gray-500 py-4">
                                 {t('current.noTicket')}
@@ -486,6 +500,7 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
                                                     }}
                                                     disabled={pickMutation.isPending || inProgressTicketId === ticket.id || !!currentTicket}
                                                     t={t}
+                                                    onShowDetails={() => openDetails(ticket)}
                                                 />
                                             ))}
                                         </div>
@@ -506,7 +521,7 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
 
 
 
-function StaffTicketItem({ ticket, onCall, disabled, t }: { ticket: Ticket, onCall: () => void, disabled: boolean, t: (key: string, values?: Record<string, any>) => string }) {
+function StaffTicketItem({ ticket, onCall, disabled, t, onShowDetails }: { ticket: Ticket, onCall: () => void, disabled: boolean, t: (key: string, values?: Record<string, any>) => string, onShowDetails: () => void }) {
     const { background, formatTime, elapsed } = useTicketTimer(ticket.createdAt || undefined, ticket.maxWaitingTime);
 
     return (
@@ -522,9 +537,14 @@ function StaffTicketItem({ ticket, onCall, disabled, t }: { ticket: Ticket, onCa
                         <span className="ml-2 opacity-70">Max: {formatTime(ticket.maxWaitingTime)}</span>
                     )}
                     {ticket.preRegistration && (
-                        <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] rounded-full font-medium">
-                            {t('pre_registration.badge', { defaultValue: 'PRE' })}
-                        </span>
+                        <>
+                            <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] rounded-full font-medium">
+                                {t('pre_registration.badge', { defaultValue: 'PRE' })}
+                            </span>
+                            <span className="ml-1 text-xs font-medium text-blue-800">
+                                {ticket.preRegistration.time}
+                            </span>
+                        </>
                     )}
                 </div>
             </div>
@@ -536,12 +556,25 @@ function StaffTicketItem({ ticket, onCall, disabled, t }: { ticket: Ticket, onCa
                 >
                     {t('actions.call')}
                 </Button>
+                {ticket.preRegistration && (
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onShowDetails();
+                        }}
+                    >
+                        <Info className="h-4 w-4" />
+                    </Button>
+                )}
             </div>
         </div>
     );
 }
 
-function CurrentTicketDisplay({ ticket, t }: { ticket: Ticket, t: (key: string, values?: Record<string, any>) => string }) {
+function CurrentTicketDisplay({ ticket, t, onShowDetails }: { ticket: Ticket, t: (key: string, values?: Record<string, any>) => string, onShowDetails: () => void }) {
     const isInService = ticket.status === 'in_service';
 
     // Service Timer (Active)
@@ -621,8 +654,11 @@ function CurrentTicketDisplay({ ticket, t }: { ticket: Ticket, t: (key: string, 
 
                 {ticket.preRegistration && (
                     <div className="mt-2 pt-2 border-t">
-                        <div className="text-xs text-muted-foreground uppercase tracking-wider mb-0.5">
+                        <div className="text-xs text-muted-foreground uppercase tracking-wider mb-0.5 flex items-center justify-end gap-1">
                             {t('pre_registration.title', { defaultValue: 'Pre-registration' })}
+                            <Button variant="ghost" size="icon" className="h-4 w-4" onClick={onShowDetails}>
+                                <Info className="h-3 w-3" />
+                            </Button>
                         </div>
                         <div className="text-sm font-medium">
                             {ticket.preRegistration.customerName}
