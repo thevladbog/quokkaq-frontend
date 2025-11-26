@@ -299,7 +299,7 @@ export default function UnitKioskPage() {
 
           {unit?.config?.kiosk?.logoUrl && (
             <div className="relative h-12 md:h-16 w-auto">
-              <Image
+              <img
                 src={unit.config.kiosk.logoUrl}
                 alt="Logo"
                 className="h-full w-auto object-contain"
@@ -473,7 +473,7 @@ export default function UnitKioskPage() {
             {/* Logo (top) */}
             {unit?.config?.kiosk?.logoUrl && (
               <div className="mb-4 h-16 w-auto">
-                <Image
+                <img
                   src={unit.config.kiosk.logoUrl}
                   alt="Logo"
                   className="h-full w-auto object-contain"
