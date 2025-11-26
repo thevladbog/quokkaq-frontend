@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useRouter } from '@/src/i18n/navigation';
 import { useTranslations } from 'next-intl';
@@ -10,26 +10,30 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
+interface Invitation {
+    id: string;
+    email: string;
+    status: 'active' | 'accepted' | 'inactive';
+    expiresAt: string;
+    createdAt: string;
+    targetRoles?: string;
+    targetUnits?: string;
+}
+
 export default function RegisterPage() {
     const params = useParams();
     const router = useRouter();
     const t = useTranslations('register');
     const token = params.token as string;
 
-    const [invitation, setInvitation] = useState<any>(null);
+    const [invitation, setInvitation] = useState<Invitation | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
-    useEffect(() => {
-        if (token) {
-            fetchInvitation();
-        }
-    }, [token]);
-
-    const fetchInvitation = async () => {
+    const fetchInvitation = useCallback(async () => {
         try {
             const response = await fetch(`/api/invitations/token/${token}`);
 
@@ -40,12 +44,18 @@ export default function RegisterPage() {
                 toast.error(t('invalid_token'));
                 setTimeout(() => router.push('/'), 3000);
             }
-        } catch (error) {
+        } catch {
             toast.error(t('error'));
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, t, router]);
+
+    useEffect(() => {
+        if (token) {
+            fetchInvitation();
+        }
+    }, [token, fetchInvitation]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -74,10 +84,10 @@ export default function RegisterPage() {
                 toast.success(t('success'));
                 setTimeout(() => router.push('/login'), 2000);
             } else {
-                const error = await response.json();
-                toast.error(error.message || t('error'));
+                const errorData = await response.json();
+                toast.error(errorData.message || t('error'));
             }
-        } catch (error) {
+        } catch {
             toast.error(t('error'));
         } finally {
             setSubmitting(false);

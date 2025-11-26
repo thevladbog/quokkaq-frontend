@@ -12,10 +12,22 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUnits } from '@/lib/hooks';
 
+import { Unit } from '@/lib/api';
+
+interface Invitation {
+    id: string;
+    email: string;
+    status: 'active' | 'accepted' | 'inactive';
+    expiresAt: string;
+    createdAt: string;
+    targetRoles?: string;
+    targetUnits?: string;
+}
+
 interface InvitationDetailsDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    invitation: any;
+    invitation: Invitation | null;
 }
 
 export default function InvitationDetailsDialog({
@@ -34,7 +46,7 @@ export default function InvitationDetailsDialog({
         try {
             // Try parsing directly first
             return JSON.parse(data);
-        } catch (e) {
+        } catch {
             try {
                 // If it fails, it might be base64 encoded (Go's []byte behavior)
                 return JSON.parse(atob(data));
@@ -49,7 +61,7 @@ export default function InvitationDetailsDialog({
     const targetUnits = parseData(invitation.targetUnits);
 
     const getUnitName = (unitId: string) => {
-        return units?.find((u: any) => u.id === unitId)?.name || unitId;
+        return units?.find((u: Unit) => u.id === unitId)?.name || unitId;
     };
 
     return (
@@ -83,7 +95,7 @@ export default function InvitationDetailsDialog({
                             <h3 className="font-medium mb-2">{t('assigned_units')}</h3>
                             {targetUnits.length > 0 ? (
                                 <div className="space-y-4">
-                                    {targetUnits.map((target: any) => (
+                                    {targetUnits.map((target: { unitId: string; permissions?: string[] }) => (
                                         <div key={target.unitId} className="border rounded-lg p-3">
                                             <div className="font-medium mb-2">
                                                 {getUnitName(target.unitId)}

@@ -15,7 +15,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { preRegistrationsApi, unitsApi, PreRegistration } from '@/lib/api';
+import { preRegistrationsApi, unitsApi, PreRegistration, Service } from '@/lib/api';
 
 interface PreRegistrationTableProps {
     unitId: string;
@@ -40,29 +40,29 @@ export function PreRegistrationTable({ unitId, onEdit }: PreRegistrationTablePro
     });
 
     // Helper function to get localized service name with hierarchy
-    const getLocalizedServiceName = (service: any) => {
+    const getLocalizedServiceName = (service: Service | null | undefined) => {
         if (!service) return '';
 
         const allServices = services || [];
 
-        const getName = (s: any) => {
+        const getName = (s: Service) => {
             if (locale === 'ru' && s.nameRu) return s.nameRu;
             if (locale === 'en' && s.nameEn) return s.nameEn;
             return s.name;
         };
 
         // Build hierarchy path
-        const buildPath = (s: any): string[] => {
+        const buildPath = (s: Service): string[] => {
             const path: string[] = [];
-            let current = s;
+            let current: Service | null | undefined = s;
 
             while (current) {
                 path.unshift(getName(current));
                 // Try to get parent from parent field or find by parentId
                 if (current.parent) {
                     current = current.parent;
-                } else if (current.parentId && allServices.length > 0) {
-                    current = allServices.find((srv: any) => srv.id === current.parentId);
+                } else if (current?.parentId && allServices.length > 0) {
+                    current = allServices.find((srv: Service) => srv.id === current?.parentId) ?? null;
                 } else {
                     current = null;
                 }

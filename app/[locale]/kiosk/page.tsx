@@ -1,19 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUnits } from '@/lib/hooks';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/src/i18n/navigation';
-import { useLocale } from 'next-intl';
 import KioskLanguageSwitcher from '@/components/KioskLanguageSwitcher';
 import ThemeToggle from '@/components/ThemeToggle';
 
 export default function KioskPage() {
   const { data: units = [], isLoading: unitsLoading, error: unitsError } = useUnits();
   const router = useRouter();
-  const locale = useLocale();
   const t = useTranslations('kiosk');
 
   if (unitsLoading) {
@@ -88,7 +85,7 @@ export default function KioskPage() {
   }
 
   const handleUnitSelect = (unitId: string) => {
-    router.push(`/kiosk/${unitId}` as any);
+    router.push(`/kiosk/${unitId}`);
   };
 
   return (

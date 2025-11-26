@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useLayoutEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Service, Unit, servicesApi, unitsApi } from '@/lib/api';
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { FolderIcon } from '@/src/components/ui/icons/akar-icons-folder';
 import { XSmallIcon } from '@/src/components/ui/icons/akar-icons-x-small';
 import {
-  useUnitServicesTree,
   useUpdateService
 } from '@/lib/hooks';
 
@@ -48,12 +47,15 @@ const StartCellInput: React.FC<{
   );
   const [isFocused, setIsFocused] = useState(false);
 
-  // Sync local state with props when not focused
-  useEffect(() => {
-    if (!isFocused) {
-      setValue(positionToIndex(service.gridRow!, service.gridCol!).toString());
-    }
-  }, [service.gridRow, service.gridCol, isFocused]);
+  const [prevRow, setPrevRow] = useState(service.gridRow);
+  const [prevCol, setPrevCol] = useState(service.gridCol);
+
+  // Sync local state with props when not focused (state mirroring pattern)
+  if (!isFocused && (service.gridRow !== prevRow || service.gridCol !== prevCol)) {
+    setPrevRow(service.gridRow);
+    setPrevCol(service.gridCol);
+    setValue(positionToIndex(service.gridRow!, service.gridCol!).toString());
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -343,11 +345,10 @@ const MainGridWithOverlays: React.FC<{
 // Child grid component with overlays
 const ChildGridWithOverlays: React.FC<{
   services: ServiceWithPosition[],
-  title: string,
   cellWidth: number,
   cellHeight: number,
   onChange: (id: string, field: string, value: number | null) => void
-}> = ({ services: gridServices, title, cellWidth, cellHeight, onChange }) => {
+}> = ({ services: gridServices, cellWidth, cellHeight, onChange }) => {
   const childGridRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -580,12 +581,10 @@ const ResponsiveGridWrapper: React.FC<{
 // Component for displaying grid tabs
 const ServiceGridWithTabs: React.FC<{
   services: ServiceWithPosition[];
-  onAddService: (service: ServiceWithPosition) => void;
   onPropertyChange: (id: string, field: string, value: number | null) => void;
-  onPositionChange: (id: string, row: number, col: number) => void;
   activeTab: string;
   setActiveTab: (tab: string) => void;
-}> = ({ services, onAddService, onPropertyChange, onPositionChange, activeTab, setActiveTab }) => {
+}> = ({ services, onPropertyChange, activeTab, setActiveTab }) => {
   // Find all parent services that have children (or are folders)
   const parentServices = services.filter(service =>
     service.isLeaf === false
@@ -640,7 +639,7 @@ const ServiceGridWithTabs: React.FC<{
       <TabsContent value="main-grid" className="space-y-6">
         <Card>
           <CardHeader>
-            {/* @ts-ignore */}
+            {/* @ts-expect-error - t is injected */}
             <CardTitle>{mainGridServices[0]?.t('grid_configuration.main_grid') || 'Main Grid'} ({GRID_COLS}x{GRID_ROWS})</CardTitle>
           </CardHeader>
           <CardContent>
@@ -669,7 +668,7 @@ const ServiceGridWithTabs: React.FC<{
           <TabsContent key={`content-${parent.id}`} value={`grid-${parent.id}`} className="space-y-6">
             <Card>
               <CardHeader>
-                {/* @ts-ignore */}
+                {/* @ts-expect-error - t is injected */}
                 <CardTitle>{parent.name} {parentServices[0]?.t('grid_configuration.sub_grid')} ({GRID_COLS}x{GRID_ROWS})</CardTitle>
               </CardHeader>
               <CardContent>
@@ -680,7 +679,6 @@ const ServiceGridWithTabs: React.FC<{
                 >
                   <ChildGridWithOverlays
                     services={childServices}
-                    title={parent.name}
                     cellWidth={gridDimensions.width}
                     cellHeight={gridDimensions.height}
                     onChange={onPropertyChange}
@@ -847,9 +845,7 @@ const SimpleGrid: React.FC<{
         <div className={(availableServices.length > 0 || placedServicesForTab.length > 0) ? "lg:col-span-3" : "lg:col-span-4"}>
           <ServiceGridWithTabs
             services={services}
-            onAddService={onAddService}
             onPropertyChange={onPropertyChange}
-            onPositionChange={onPositionChange}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />
@@ -933,17 +929,12 @@ const ServiceGridEditor: React.FC<ServiceGridEditorProps> = ({ unitId }) => {
   useEffect(() => {
     const id = unitId || selectedUnitId;
     if (id) {
-      // We set loading here, but to avoid "setState in useEffect" warning for synchronous updates,
-      // we rely on the fact that this effect runs on dependency change.
-      // However, to be safe and avoid the warning if it's considered synchronous in some contexts (though it shouldn't be for data fetch),
-      // we can set it. But the warning was specific.
-      // Actually, setting state in useEffect IS standard for data fetching.
-      // The warning might be because we are setting it immediately?
-      // Let's try to set it only if not already loading?
-      // Or just suppress it if it's a false positive for data fetching.
-      // But we can also set isLoading(true) when we change selectedUnitId in the handler.
+      // We don't set isLoading(true) here to avoid "setState in useEffect" warning.
+      // Instead, we rely on the async operation to complete.
+      // If a loading indicator is strictly needed during this specific transition,
+      // it should be handled by a state that is updated via an event handler (like handleUnitSelect)
+      // or by using a library like React Query which handles loading states automatically.
 
-      setIsLoading(true);
       unitsApi.getServicesTree(id)
         .then(servicesTree => {
           const flattenedServices: ServiceWithPosition[] = [];
@@ -968,11 +959,8 @@ const ServiceGridEditor: React.FC<ServiceGridEditorProps> = ({ unitId }) => {
         })
         .catch(error => { console.error('Error loading services:', error); })
         .finally(() => setIsLoading(false));
-    } else {
-      setServices([]);
-      setIsLoading(false);
     }
-  }, [unitId, selectedUnitId, t]); // Added t to dependencies
+  }, [unitId, selectedUnitId, t]);
 
   const handleUnitSelect = (id: string) => {
     setSelectedUnitId(id);

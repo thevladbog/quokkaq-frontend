@@ -32,27 +32,55 @@ interface KioskSettingsSheetProps {
 
 export function KioskSettingsSheet({ isOpen, onClose, unitId, currentConfig, onLock, isLocked, onUnlock }: KioskSettingsSheetProps) {
     const t = useTranslations('kiosk.settings');
+
+    return (
+        <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <SheetContent side="right" className="w-full sm:w-[600px] sm:max-w-[800px] sm:px-12 overflow-y-auto">
+                <SheetHeader>
+                    <SheetTitle>{t('title')}</SheetTitle>
+                    <SheetDescription>{t('description')}</SheetDescription>
+                </SheetHeader>
+
+                {isOpen && (
+                    <KioskSettingsForm
+                        unitId={unitId}
+                        currentConfig={currentConfig}
+                        onClose={onClose}
+                        onLock={onLock}
+                        isLocked={isLocked}
+                        onUnlock={onUnlock}
+                    />
+                )}
+            </SheetContent>
+        </Sheet>
+    );
+}
+
+function KioskSettingsForm({
+    unitId,
+    currentConfig,
+    onClose,
+    onLock,
+    isLocked,
+    onUnlock
+}: {
+    unitId: string;
+    currentConfig?: UnitConfig | null;
+    onClose: () => void;
+    onLock: () => void;
+    isLocked: boolean;
+    onUnlock: () => void;
+}) {
+    const t = useTranslations('kiosk.settings');
     const updateUnitMutation = useUpdateUnit();
 
-    const [showHeader, setShowHeader] = useState(true);
-    const [showFooter, setShowFooter] = useState(true);
-    const [printerIp, setPrinterIp] = useState('');
-    const [printerPort, setPrinterPort] = useState('9100');
-    const [printerType, setPrinterType] = useState('receipt');
-    const [isPrintEnabled, setIsPrintEnabled] = useState(true);
-    const [logoUrl, setLogoUrl] = useState('');
-
-    useEffect(() => {
-        if (isOpen && currentConfig?.kiosk) {
-            setShowHeader(currentConfig.kiosk.showHeader !== false);
-            setShowFooter(currentConfig.kiosk.showFooter !== false);
-            setPrinterIp(currentConfig.kiosk.printerIp || '');
-            setPrinterPort(currentConfig.kiosk.printerPort || '9100');
-            setPrinterType(currentConfig.kiosk.printerType || 'receipt');
-            setIsPrintEnabled(currentConfig.kiosk.isPrintEnabled !== false);
-            setLogoUrl(currentConfig.kiosk.logoUrl || '');
-        }
-    }, [isOpen, currentConfig]);
+    const [showHeader, setShowHeader] = useState(currentConfig?.kiosk?.showHeader !== false);
+    const [showFooter, setShowFooter] = useState(currentConfig?.kiosk?.showFooter !== false);
+    const [printerIp, setPrinterIp] = useState(currentConfig?.kiosk?.printerIp || '');
+    const [printerPort, setPrinterPort] = useState(currentConfig?.kiosk?.printerPort || '9100');
+    const [printerType, setPrinterType] = useState(currentConfig?.kiosk?.printerType || 'receipt');
+    const [isPrintEnabled, setIsPrintEnabled] = useState(currentConfig?.kiosk?.isPrintEnabled !== false);
+    const [logoUrl, setLogoUrl] = useState(currentConfig?.kiosk?.logoUrl || '');
 
     const handleSave = () => {
         const newConfig = {
@@ -86,117 +114,108 @@ export function KioskSettingsSheet({ isOpen, onClose, unitId, currentConfig, onL
     };
 
     return (
-        <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <SheetContent side="right" className="w-full sm:w-[600px] sm:max-w-[800px] sm:px-12 overflow-y-auto">
-                <SheetHeader>
-                    <SheetTitle>{t('title')}</SheetTitle>
-                    <SheetDescription>{t('description')}</SheetDescription>
-                </SheetHeader>
-
-                <div className="py-6 space-y-6">
-                    <div className="space-y-2">
-                        <LogoUpload
-                            label={t('logo_upload')}
-                            currentLogoUrl={logoUrl}
-                            onLogoUploaded={setLogoUrl}
-                            onLogoRemoved={() => setLogoUrl('')}
-                        />
-                    </div>
-
-                    {/* ... rest of the component */}
-
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                            <Label>{t('show_header')}</Label>
-                            <p className="text-sm text-muted-foreground">{t('show_header_desc')}</p>
-                        </div>
-                        <Switch checked={showHeader} onCheckedChange={setShowHeader} />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                            <Label>{t('show_footer')}</Label>
-                            <p className="text-sm text-muted-foreground">{t('show_footer_desc')}</p>
-                        </div>
-                        <Switch checked={showFooter} onCheckedChange={setShowFooter} />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                            <Label>{t('enable_printing')}</Label>
-                            <p className="text-sm text-muted-foreground">{t('enable_printing_desc')}</p>
-                        </div>
-                        <Switch checked={isPrintEnabled} onCheckedChange={setIsPrintEnabled} />
-                    </div>
-
-                    {isPrintEnabled && (
-                        <>
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="col-span-2 space-y-2">
-                                    <Label>{t('printer_ip')}</Label>
-                                    <Input
-                                        value={printerIp}
-                                        onChange={(e) => setPrinterIp(e.target.value)}
-                                        placeholder="192.168.1.100"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>{t('printer_port')}</Label>
-                                    <Input
-                                        value={printerPort}
-                                        onChange={(e) => setPrinterPort(e.target.value)}
-                                        placeholder="9100"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>{t('printer_type')}</Label>
-                                <div className="flex gap-4">
-                                    <Button
-                                        variant={printerType === 'receipt' ? 'default' : 'outline'}
-                                        onClick={() => setPrinterType('receipt')}
-                                        className="flex-1"
-                                    >
-                                        {t('printer_type_receipt')}
-                                    </Button>
-                                    <Button
-                                        variant={printerType === 'label' ? 'default' : 'outline'}
-                                        onClick={() => setPrinterType('label')}
-                                        className="flex-1"
-                                    >
-                                        {t('printer_type_label')}
-                                    </Button>
-                                </div>
-                            </div>
-                        </>
-                    )}
-
-                    <Button variant="outline" className="w-full" onClick={handleTestPrint} disabled={!isPrintEnabled}>
-                        {t('test_print')}
-                    </Button>
-
-                    <div className="pt-4 border-t">
-                        {isLocked ? (
-                            <Button variant="default" className="w-full flex items-center gap-2" onClick={onUnlock}>
-                                <Lock className="h-4 w-4" />
-                                {t('unlock_kiosk', { defaultValue: 'Unlock Kiosk' })}
-                            </Button>
-                        ) : (
-                            <Button variant="destructive" className="w-full flex items-center gap-2" onClick={onLock}>
-                                <Lock className="h-4 w-4" />
-                                {t('lock_kiosk')}
-                            </Button>
-                        )}
-                    </div>
+        <>
+            <div className="py-6 space-y-6">
+                <div className="space-y-2">
+                    <LogoUpload
+                        label={t('logo_upload')}
+                        currentLogoUrl={logoUrl}
+                        onLogoUploaded={setLogoUrl}
+                        onLogoRemoved={() => setLogoUrl('')}
+                    />
                 </div>
 
-                <SheetFooter>
-                    <Button onClick={handleSave} disabled={updateUnitMutation.isPending}>
-                        {updateUnitMutation.isPending ? t('saving') : t('save_changes')}
-                    </Button>
-                </SheetFooter>
-            </SheetContent>
-        </Sheet>
+                <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                        <Label>{t('show_header')}</Label>
+                        <p className="text-sm text-muted-foreground">{t('show_header_desc')}</p>
+                    </div>
+                    <Switch checked={showHeader} onCheckedChange={setShowHeader} />
+                </div>
+
+                <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                        <Label>{t('show_footer')}</Label>
+                        <p className="text-sm text-muted-foreground">{t('show_footer_desc')}</p>
+                    </div>
+                    <Switch checked={showFooter} onCheckedChange={setShowFooter} />
+                </div>
+
+                <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                        <Label>{t('enable_printing')}</Label>
+                        <p className="text-sm text-muted-foreground">{t('enable_printing_desc')}</p>
+                    </div>
+                    <Switch checked={isPrintEnabled} onCheckedChange={setIsPrintEnabled} />
+                </div>
+
+                {isPrintEnabled && (
+                    <>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="col-span-2 space-y-2">
+                                <Label>{t('printer_ip')}</Label>
+                                <Input
+                                    value={printerIp}
+                                    onChange={(e) => setPrinterIp(e.target.value)}
+                                    placeholder="192.168.1.100"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>{t('printer_port')}</Label>
+                                <Input
+                                    value={printerPort}
+                                    onChange={(e) => setPrinterPort(e.target.value)}
+                                    placeholder="9100"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>{t('printer_type')}</Label>
+                            <div className="flex gap-4">
+                                <Button
+                                    variant={printerType === 'receipt' ? 'default' : 'outline'}
+                                    onClick={() => setPrinterType('receipt')}
+                                    className="flex-1"
+                                >
+                                    {t('printer_type_receipt')}
+                                </Button>
+                                <Button
+                                    variant={printerType === 'label' ? 'default' : 'outline'}
+                                    onClick={() => setPrinterType('label')}
+                                    className="flex-1"
+                                >
+                                    {t('printer_type_label')}
+                                </Button>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                <Button variant="outline" className="w-full" onClick={handleTestPrint} disabled={!isPrintEnabled}>
+                    {t('test_print')}
+                </Button>
+
+                <div className="pt-4 border-t">
+                    {isLocked ? (
+                        <Button variant="default" className="w-full flex items-center gap-2" onClick={onUnlock}>
+                            <Lock className="h-4 w-4" />
+                            {t('unlock_kiosk', { defaultValue: 'Unlock Kiosk' })}
+                        </Button>
+                    ) : (
+                        <Button variant="destructive" className="w-full flex items-center gap-2" onClick={onLock}>
+                            <Lock className="h-4 w-4" />
+                            {t('lock_kiosk')}
+                        </Button>
+                    )}
+                </div>
+            </div>
+
+            <SheetFooter>
+                <Button onClick={handleSave} disabled={updateUnitMutation.isPending}>
+                    {updateUnitMutation.isPending ? t('saving') : t('save_changes')}
+                </Button>
+            </SheetFooter>
+        </>
     );
 }

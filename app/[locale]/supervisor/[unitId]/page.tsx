@@ -103,21 +103,6 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
     }
   };
 
-  const formatWaitTime = (createdAt: string | undefined | null) => {
-    const now = new Date();
-    const created = new Date(createdAt || new Date().toISOString());
-    const diffMs = now.getTime() - created.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffSecs = Math.floor((diffMs % 60000) / 1000);
-
-    if (diffMins >= 60) {
-      const hours = Math.floor(diffMins / 60);
-      const mins = diffMins % 60;
-      return `${hours}:${mins.toString().padStart(2, '0')}:${diffSecs.toString().padStart(2, '0')}`;
-    }
-    return `${diffMins}:${diffSecs.toString().padStart(2, '0')}`;
-  };
-
   return (
     <>
       <div className="container mx-auto p-4 max-w-7xl space-y-6">
@@ -358,7 +343,7 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
 
 import { useTicketTimer } from '@/lib/ticket-timer';
 
-function TicketListItem({ ticket, onShowDetails, t }: { ticket: Ticket & { service?: Service }, onShowDetails: () => void, t: (key: string, values?: Record<string, any>) => string }) {
+function TicketListItem({ ticket, onShowDetails, t }: { ticket: Ticket & { service?: Service }, onShowDetails: () => void, t: (key: string, values?: Record<string, string | number>) => string }) {
   const { background, formatTime, elapsed } = useTicketTimer(ticket.createdAt || undefined, ticket.maxWaitingTime);
 
   return (

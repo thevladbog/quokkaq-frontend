@@ -21,7 +21,6 @@ export default function TicketPage() {
   const [showFeedback, setShowFeedback] = useState(false);
   const locale = useLocale();
   const t = useTranslations('ticket_page');
-  const tKiosk = useTranslations('kiosk');
   const tStaff = useTranslations('staff.statuses');
 
   const { ticketId } = useParams() as { ticketId?: string };
@@ -39,7 +38,7 @@ export default function TicketPage() {
           try {
             const s = await servicesApi.getById(t_data.serviceId);
             setService(s);
-          } catch (e) {
+          } catch {
             // ignore
           }
         }
@@ -49,7 +48,7 @@ export default function TicketPage() {
             socketClient.connect(t_data.unitId);
             socketClient.onTicketCalled((data) => {
               if (data?.ticket?.id === t_data.id) {
-                const counterName = data.ticket?.counter?.name || (data.ticket as any)?.counterId || 'the counter';
+                const counterName = data.ticket?.counter?.name || (data.ticket as { counterId?: string })?.counterId || 'the counter';
                 toast.success(t('your_ticket_called', { number: t_data.queueNumber, counter: counterName }));
                 // Update ticket status in real-time
                 setTicket(prev => prev ? { ...prev, status: 'called' } : prev);
