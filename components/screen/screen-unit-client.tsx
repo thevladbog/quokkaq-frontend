@@ -10,7 +10,6 @@ import { CalledTicketsTable } from '@/components/screen/called-tickets-table';
 import { QueueTicker } from '@/components/screen/queue-ticker';
 import { CallNotification } from '@/components/screen/call-notification';
 import { Spinner } from '@/components/ui/spinner';
-import Image from 'next/image';
 
 interface ScreenUnitClientProps {
     unitId: string;
@@ -163,7 +162,7 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
                 <div className="flex items-center gap-4">
                     {(config?.adScreen?.logoUrl || config?.logoUrl) && (
                         <div className="relative h-12 md:h-16 w-auto">
-                            <Image
+                            <img
                                 src={config?.adScreen?.logoUrl || config?.logoUrl || ''}
                                 alt="Logo"
                                 className="h-full w-auto object-contain"
