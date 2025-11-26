@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 export default function UnitServicesLayout({
-  children,
+  children
 }: {
   children: ReactNode;
 }) {

@@ -2,29 +2,50 @@
 
 import { use, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from '@/components/ui/dialog';
 import { shiftApi, unitsApi, Ticket, Service } from '@/lib/api';
 import { useTranslations } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Users, ListChecks, Clock, AlertTriangle, XCircle, Info } from 'lucide-react';
+import {
+  Loader2,
+  Users,
+  ListChecks,
+  Clock,
+  AlertTriangle,
+  XCircle,
+  Info
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { PreRegistrationDetailsModal } from '@/components/staff/PreRegistrationDetailsModal';
 
-export default function ShiftDashboardPage({ params }: { params: Promise<{ unitId: string }> }) {
+export default function ShiftDashboardPage({
+  params
+}: {
+  params: Promise<{ unitId: string }>;
+}) {
   const { unitId } = use(params);
   const t = useTranslations('supervisor');
   const queryClient = useQueryClient();
   const [showEODDialog, setShowEODDialog] = useState(false);
   const [forceReleaseDialogOpen, setForceReleaseDialogOpen] = useState(false);
-  const [selectedCounter, setSelectedCounter] = useState<{ id: string; name: string } | null>(null);
+  const [selectedCounter, setSelectedCounter] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [detailsTicket, setDetailsTicket] = useState<Ticket | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
@@ -36,28 +57,28 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
   // Fetch unit info
   const { data: unit } = useQuery({
     queryKey: ['unit', unitId],
-    queryFn: () => unitsApi.getById(unitId),
+    queryFn: () => unitsApi.getById(unitId)
   });
 
   // Fetch dashboard stats
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['shift-dashboard', unitId],
     queryFn: () => shiftApi.getDashboard(unitId),
-    refetchInterval: 10000, // Refresh every 10 seconds
+    refetchInterval: 10000 // Refresh every 10 seconds
   });
 
   // Fetch queue
   const { data: queue, isLoading: queueLoading } = useQuery({
     queryKey: ['shift-queue', unitId],
     queryFn: () => shiftApi.getQueue(unitId),
-    refetchInterval: 10000,
+    refetchInterval: 10000
   });
 
   // Fetch counters
   const { data: counters, isLoading: countersLoading } = useQuery({
     queryKey: ['shift-counters', unitId],
     queryFn: () => shiftApi.getCounters(unitId),
-    refetchInterval: 10000,
+    refetchInterval: 10000
   });
 
   // Force release mutation
@@ -72,7 +93,7 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
     },
     onError: (error: Error) => {
       toast.error(`${t('errorReleasingCounter')}: ${error.message}`);
-    },
+    }
   });
 
   // EOD mutation
@@ -89,7 +110,7 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
     },
     onError: (error: Error) => {
       toast.error(`${t('errorEOD')}: ${error.message}`);
-    },
+    }
   });
 
   const handleForceRelease = (counter: { id: string; name: string }) => {
@@ -105,27 +126,27 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
 
   return (
     <>
-      <div className="container mx-auto p-4 max-w-7xl space-y-6">
+      <div className='container mx-auto max-w-7xl space-y-6 p-4'>
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className='flex items-center justify-between'>
           <div>
-            <h1 className="text-3xl font-bold">{t('dashboard')}</h1>
-            <p className="text-muted-foreground">{unit?.name}</p>
+            <h1 className='text-3xl font-bold'>{t('dashboard')}</h1>
+            <p className='text-muted-foreground'>{unit?.name}</p>
           </div>
           <Button
-            variant="destructive"
-            size="lg"
+            variant='destructive'
+            size='lg'
             onClick={() => setShowEODDialog(true)}
             disabled={eodMutation.isPending}
           >
             {eodMutation.isPending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                 {t('processing')}
               </>
             ) : (
               <>
-                <AlertTriangle className="mr-2 h-4 w-4" />
+                <AlertTriangle className='mr-2 h-4 w-4' />
                 {t('endOfDay')}
               </>
             )}
@@ -133,46 +154,59 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t('activeCounters')}</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+              <CardTitle className='text-sm font-medium'>
+                {t('activeCounters')}
+              </CardTitle>
+              <Users className='text-muted-foreground h-4 w-4' />
             </CardHeader>
             <CardContent>
               {statsLoading ? (
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <Loader2 className='h-8 w-8 animate-spin' />
               ) : (
-                <div className="text-4xl font-bold">{stats?.activeCountersCount || 0}</div>
+                <div className='text-4xl font-bold'>
+                  {stats?.activeCountersCount || 0}
+                </div>
               )}
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t('queueLength')}</CardTitle>
-              <ListChecks className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+              <CardTitle className='text-sm font-medium'>
+                {t('queueLength')}
+              </CardTitle>
+              <ListChecks className='text-muted-foreground h-4 w-4' />
             </CardHeader>
             <CardContent>
               {statsLoading ? (
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <Loader2 className='h-8 w-8 animate-spin' />
               ) : (
-                <div className="text-4xl font-bold">{stats?.queueLength || 0}</div>
+                <div className='text-4xl font-bold'>
+                  {stats?.queueLength || 0}
+                </div>
               )}
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{t('avgWaitTime')}</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+              <CardTitle className='text-sm font-medium'>
+                {t('avgWaitTime')}
+              </CardTitle>
+              <Clock className='text-muted-foreground h-4 w-4' />
             </CardHeader>
             <CardContent>
               {statsLoading ? (
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <Loader2 className='h-8 w-8 animate-spin' />
               ) : (
-                <div className="text-4xl font-bold">
-                  {stats?.averageWaitTimeMinutes || 0} <span className="text-xl text-muted-foreground">{t('min')}</span>
+                <div className='text-4xl font-bold'>
+                  {stats?.averageWaitTimeMinutes || 0}{' '}
+                  <span className='text-muted-foreground text-xl'>
+                    {t('min')}
+                  </span>
                 </div>
               )}
             </CardContent>
@@ -180,7 +214,7 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
         </div>
 
         {/* Queue and Counters Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
           {/* Queue List */}
           <Card>
             <CardHeader>
@@ -189,17 +223,24 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
             </CardHeader>
             <CardContent>
               {queueLoading ? (
-                <div className="flex justify-center p-8">
-                  <Loader2 className="animate-spin h-8 w-8" />
+                <div className='flex justify-center p-8'>
+                  <Loader2 className='h-8 w-8 animate-spin' />
                 </div>
               ) : queue && queue.length > 0 ? (
-                <div className="space-y-2 max-h-96 overflow-y-auto">
+                <div className='max-h-96 space-y-2 overflow-y-auto'>
                   {queue.map((ticket) => (
-                    <TicketListItem key={ticket.id} ticket={ticket} onShowDetails={() => openDetails(ticket)} t={t} />
+                    <TicketListItem
+                      key={ticket.id}
+                      ticket={ticket}
+                      onShowDetails={() => openDetails(ticket)}
+                      t={t}
+                    />
                   ))}
                 </div>
               ) : (
-                <div className="text-center text-muted-foreground py-8">{t('noTicketsInQueue')}</div>
+                <div className='text-muted-foreground py-8 text-center'>
+                  {t('noTicketsInQueue')}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -212,43 +253,45 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
             </CardHeader>
             <CardContent>
               {countersLoading ? (
-                <div className="flex justify-center p-8">
-                  <Loader2 className="animate-spin h-8 w-8" />
+                <div className='flex justify-center p-8'>
+                  <Loader2 className='h-8 w-8 animate-spin' />
                 </div>
               ) : counters && counters.length > 0 ? (
-                <div className="space-y-2 max-h-96 overflow-y-auto">
+                <div className='max-h-96 space-y-2 overflow-y-auto'>
                   {counters.map((counter) => (
                     <div
                       key={counter.id}
-                      className="flex justify-between items-center p-3 border rounded-lg"
+                      className='flex items-center justify-between rounded-lg border p-3'
                     >
-                      <div className="flex-1">
-                        <div className="font-semibold">{counter.name}</div>
-                        <div className="text-sm text-muted-foreground">
+                      <div className='flex-1'>
+                        <div className='font-semibold'>{counter.name}</div>
+                        <div className='text-muted-foreground text-sm'>
                           {counter.isOccupied ? (
                             <>
-                              <span className="block text-red-500 font-medium">
-                                {t('occupiedBy')}: {counter.assignedUser?.name || t('unknown')}
+                              <span className='block font-medium text-red-500'>
+                                {t('occupiedBy')}:{' '}
+                                {counter.assignedUser?.name || t('unknown')}
                               </span>
                               {counter.activeTicket && (
-                                <span className="block text-xs mt-1">
-                                  {t('serving')}: {counter.activeTicket.queueNumber}
+                                <span className='mt-1 block text-xs'>
+                                  {t('serving')}:{' '}
+                                  {counter.activeTicket.queueNumber}
                                 </span>
                               )}
                             </>
                           ) : (
-                            <span className="text-green-600">{t('free')}</span>
+                            <span className='text-green-600'>{t('free')}</span>
                           )}
                         </div>
                       </div>
                       {counter.isOccupied && (
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant='outline'
+                          size='sm'
                           onClick={() => handleForceRelease(counter)}
                           disabled={forceReleaseMutation.isPending}
                         >
-                          <XCircle className="h-4 w-4 mr-1" />
+                          <XCircle className='mr-1 h-4 w-4' />
                           {t('forceRelease')}
                         </Button>
                       )}
@@ -256,7 +299,9 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
                   ))}
                 </div>
               ) : (
-                <div className="text-center text-muted-foreground py-8">{t('noCounters')}</div>
+                <div className='text-muted-foreground py-8 text-center'>
+                  {t('noCounters')}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -264,22 +309,33 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
       </div>
 
       {/* Force Release Confirmation Dialog */}
-      <Dialog open={forceReleaseDialogOpen} onOpenChange={setForceReleaseDialogOpen}>
+      <Dialog
+        open={forceReleaseDialogOpen}
+        onOpenChange={setForceReleaseDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t('confirmForceRelease')}</DialogTitle>
             <DialogDescription>
-              {t('forceReleaseWarning', { counterName: selectedCounter?.name || '' })}
+              {t('forceReleaseWarning', {
+                counterName: selectedCounter?.name || ''
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setForceReleaseDialogOpen(false)}>
+            <Button
+              variant='outline'
+              onClick={() => setForceReleaseDialogOpen(false)}
+            >
               {t('cancel')}
             </Button>
-            <Button onClick={confirmForceRelease} disabled={forceReleaseMutation.isPending}>
+            <Button
+              onClick={confirmForceRelease}
+              disabled={forceReleaseMutation.isPending}
+            >
               {forceReleaseMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                   {t('processing')}
                 </>
               ) : (
@@ -294,35 +350,37 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
       <Dialog open={showEODDialog} onOpenChange={setShowEODDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
+            <DialogTitle className='flex items-center gap-2'>
+              <AlertTriangle className='text-destructive h-5 w-5' />
               {t('confirmEOD')}
             </DialogTitle>
-            <DialogDescription className="space-y-2" asChild>
+            <DialogDescription className='space-y-2' asChild>
               <div>
                 <div>{t('eodWarning')}</div>
-                <ul className="list-disc list-inside space-y-1 text-sm">
+                <ul className='list-inside list-disc space-y-1 text-sm'>
                   <li>{t('eodStep1')}</li>
                   <li>{t('eodStep2')}</li>
                   <li>{t('eodStep3')}</li>
                   <li>{t('eodStep4')}</li>
                 </ul>
-                <div className="font-semibold text-destructive">{t('eodIrreversible')}</div>
+                <div className='text-destructive font-semibold'>
+                  {t('eodIrreversible')}
+                </div>
               </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEODDialog(false)}>
+            <Button variant='outline' onClick={() => setShowEODDialog(false)}>
               {t('cancel')}
             </Button>
             <Button
-              variant="destructive"
+              variant='destructive'
               onClick={() => eodMutation.mutate()}
               disabled={eodMutation.isPending}
             >
               {eodMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                   {t('processing')}
                 </>
               ) : (
@@ -337,54 +395,68 @@ export default function ShiftDashboardPage({ params }: { params: Promise<{ unitI
         isOpen={isDetailsOpen}
         onClose={() => setIsDetailsOpen(false)}
         ticket={detailsTicket}
-      /></>
+      />
+    </>
   );
 }
 
 import { useTicketTimer } from '@/lib/ticket-timer';
 
-function TicketListItem({ ticket, onShowDetails, t }: { ticket: Ticket & { service?: Service }, onShowDetails: () => void, t: (key: string, values?: Record<string, string | number>) => string }) {
-  const { background, formatTime, elapsed } = useTicketTimer(ticket.createdAt || undefined, ticket.maxWaitingTime);
+function TicketListItem({
+  ticket,
+  onShowDetails,
+  t
+}: {
+  ticket: Ticket & { service?: Service };
+  onShowDetails: () => void;
+  t: (key: string, values?: Record<string, string | number>) => string;
+}) {
+  const { background, formatTime, elapsed } = useTicketTimer(
+    ticket.createdAt || undefined,
+    ticket.maxWaitingTime
+  );
 
   return (
     <div
-      className="flex justify-between items-center p-3 border rounded-lg hover:bg-accent relative overflow-hidden"
+      className='hover:bg-accent relative flex items-center justify-between overflow-hidden rounded-lg border p-3'
       style={{ background: background || undefined }}
     >
-      <div className="flex-1 relative z-10">
-        <div className="font-semibold">{ticket.queueNumber}</div>
-        <div className="text-sm text-muted-foreground">
+      <div className='relative z-10 flex-1'>
+        <div className='font-semibold'>{ticket.queueNumber}</div>
+        <div className='text-muted-foreground text-sm'>
           {ticket.service?.nameRu || ticket.service?.name}
           {ticket.preRegistration && (
-            <div className="flex items-center gap-2 mt-1">
-              <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] rounded-full font-medium">
+            <div className='mt-1 flex items-center gap-2'>
+              <span className='rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-800'>
                 {t('pre_registration.badge', { defaultValue: 'PRE' })}
               </span>
-              <span className="text-xs font-medium text-blue-800">
+              <span className='text-xs font-medium text-blue-800'>
                 {ticket.preRegistration.time}
               </span>
             </div>
           )}
         </div>
       </div>
-      <div className="flex items-center gap-2 relative z-10">
-        <div className="text-sm text-muted-foreground text-right">
+      <div className='relative z-10 flex items-center gap-2'>
+        <div className='text-muted-foreground text-right text-sm'>
           <div>{formatTime(elapsed)}</div>
           {ticket.maxWaitingTime && (
-            <div className="text-xs opacity-70">Max: {formatTime(ticket.maxWaitingTime)}</div>
+            <div className='text-xs opacity-70'>
+              Max: {formatTime(ticket.maxWaitingTime)}
+            </div>
           )}
         </div>
         {ticket.preRegistration && (
           <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 w-8 p-0"
+            size='sm'
+            variant='ghost'
+            className='h-8 w-8 p-0'
             onClick={(e) => {
               e.stopPropagation();
               onShowDetails();
             }}
           >
-            <Info className="h-4 w-4" />
+            <Info className='h-4 w-4' />
           </Button>
         )}
       </div>

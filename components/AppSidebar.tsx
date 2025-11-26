@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
-  SidebarMenuSubItem,
+  SidebarMenuSubItem
 } from '@/components/ui/sidebar';
 import {
   Home,
@@ -25,7 +25,7 @@ import {
   ClipboardList,
   Mail,
   MessageSquare,
-  CalendarClock,
+  CalendarClock
 } from 'lucide-react';
 import Image from 'next/image';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -34,7 +34,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -47,7 +47,8 @@ const AppSidebar = () => {
   const pathname = usePathname();
 
   const isActive = (path: string) => pathname === path;
-  const isActiveSub = (path: string) => pathname.startsWith(path) && pathname !== path;
+  const isActiveSub = (path: string) =>
+    pathname.startsWith(path) && pathname !== path;
 
   // Define settings submenu items
   const settingsSubItems = [
@@ -56,42 +57,46 @@ const AppSidebar = () => {
       label: tAdmin('navigation.units', { defaultValue: 'Units' }),
       href: '/admin/units',
       active: isActive('/admin/units') || isActiveSub('/admin/units'),
-      roles: ['admin'],
+      roles: ['admin']
     },
     {
       icon: UserRound,
       label: tAdmin('navigation.users', { defaultValue: 'Users' }),
       href: '/admin/users',
       active: isActive('/admin/users'),
-      roles: ['admin'],
+      roles: ['admin']
     },
     {
       icon: Grid3X3,
-      label: tAdmin('navigation.grid_configuration', { defaultValue: 'Grid Configuration' }),
+      label: tAdmin('navigation.grid_configuration', {
+        defaultValue: 'Grid Configuration'
+      }),
       href: '/admin/grid-configuration',
       active: isActive('/admin/grid-configuration'),
-      roles: ['admin'],
+      roles: ['admin']
     },
     {
       icon: Mail,
       label: tAdmin('navigation.invitations', { defaultValue: 'Invitations' }),
       href: '/admin/invitations',
       active: isActive('/admin/invitations'),
-      roles: ['admin'],
+      roles: ['admin']
     },
     {
       icon: MessageSquare,
       label: tAdmin('navigation.templates', { defaultValue: 'Templates' }),
       href: '/admin/templates',
       active: isActive('/admin/templates'),
-      roles: ['admin'],
-    },
+      roles: ['admin']
+    }
   ];
 
   // Helper to check if user has specific permission in ANY unit
   const hasPermissionInAnyUnit = (permission: string) => {
     if (!user?.permissions) return false;
-    return (Object.values(user.permissions) as string[][]).some((perms: string[]) => perms.includes(permission));
+    return (Object.values(user.permissions) as string[][]).some(
+      (perms: string[]) => perms.includes(permission)
+    );
   };
 
   // Filter navigation items based on user roles and permissions
@@ -101,7 +106,7 @@ const AppSidebar = () => {
       label: tNav('home', { defaultValue: 'Home' }),
       href: '/',
       active: isActive('/'),
-      roles: ['admin', 'staff', 'supervisor', 'user'], // All users can access home
+      roles: ['admin', 'staff', 'supervisor', 'user'] // All users can access home
     },
     {
       icon: Settings,
@@ -109,7 +114,7 @@ const AppSidebar = () => {
       href: '/admin/units',
       active: pathname.startsWith('/admin'),
       roles: ['admin'], // Only admins can access admin panel
-      hasSubmenu: true,
+      hasSubmenu: true
     },
     {
       icon: Users,
@@ -117,7 +122,7 @@ const AppSidebar = () => {
       href: '/staff',
       active: isActive('/staff'),
       roles: ['admin', 'staff'], // Admins and staff can access staff panel
-      requiredPermission: 'ACCESS_STAFF_PANEL',
+      requiredPermission: 'ACCESS_STAFF_PANEL'
     },
     {
       icon: ClipboardList,
@@ -125,33 +130,43 @@ const AppSidebar = () => {
       href: '/supervisor',
       active: isActive('/supervisor') || isActiveSub('/supervisor'),
       roles: ['admin', 'supervisor'], // Admins and supervisors can access supervisor panel
-      requiredPermission: 'ACCESS_SUPERVISOR_PANEL',
+      requiredPermission: 'ACCESS_SUPERVISOR_PANEL'
     },
     {
       icon: CalendarClock,
-      label: tAdmin('navigation.pre_registrations', { defaultValue: 'Pre-registrations' }),
+      label: tAdmin('navigation.pre_registrations', {
+        defaultValue: 'Pre-registrations'
+      }),
       href: '/admin/pre-registrations',
-      active: isActive('/admin/pre-registrations') || isActiveSub('/admin/pre-registrations'),
-      roles: ['admin', 'staff', 'supervisor'],
+      active:
+        isActive('/admin/pre-registrations') ||
+        isActiveSub('/admin/pre-registrations'),
+      roles: ['admin', 'staff', 'supervisor']
       // requiredPermission: 'ACCESS_STAFF_PANEL', // Or maybe a specific one? Let's stick to roles for now or reuse staff/supervisor
-    },
-  ].filter(item => {
+    }
+  ].filter((item) => {
     if (!isAuthenticated) return false;
     if (user?.roles?.includes('admin')) return true; // Admin sees everything
 
     // Check roles
-    const hasRole = !item.roles || user?.roles?.some((role: string) => item.roles?.includes(role));
+    const hasRole =
+      !item.roles ||
+      user?.roles?.some((role: string) => item.roles?.includes(role));
 
     // Check permissions if defined
-    const hasPermission = item.requiredPermission ? hasPermissionInAnyUnit(item.requiredPermission) : false;
+    const hasPermission = item.requiredPermission
+      ? hasPermissionInAnyUnit(item.requiredPermission)
+      : false;
 
     return hasRole || hasPermission;
   });
 
-  const filteredSettingsSubItems = settingsSubItems.filter(item =>
-    !item.roles || // No role restriction
-    (isAuthenticated && user?.roles?.includes('admin')) || // Admin has access to everything
-    (isAuthenticated && user?.roles?.some((role: string) => item.roles?.includes(role))) // User has required role
+  const filteredSettingsSubItems = settingsSubItems.filter(
+    (item) =>
+      !item.roles || // No role restriction
+      (isAuthenticated && user?.roles?.includes('admin')) || // Admin has access to everything
+      (isAuthenticated &&
+        user?.roles?.some((role: string) => item.roles?.includes(role))) // User has required role
   );
 
   return (
@@ -159,14 +174,26 @@ const AppSidebar = () => {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/">
-                <div className="flex items-center gap-2">
-                  <div className="relative w-40 h-10 group-data-[collapsible=icon]:hidden">
-                    <Image src="/logo-text.svg" alt="QuokkaQ" fill className="object-contain" priority />
+            <SidebarMenuButton size='lg' asChild>
+              <Link href='/'>
+                <div className='flex items-center gap-2'>
+                  <div className='relative h-10 w-40 group-data-[collapsible=icon]:hidden'>
+                    <Image
+                      src='/logo-text.svg'
+                      alt='QuokkaQ'
+                      fill
+                      className='object-contain'
+                      priority
+                    />
                   </div>
-                  <div className="relative w-8 h-8 hidden group-data-[collapsible=icon]:block">
-                    <Image src="/quokka-logo.svg" alt="QuokkaQ" fill className="object-contain" priority />
+                  <div className='relative hidden h-8 w-8 group-data-[collapsible=icon]:block'>
+                    <Image
+                      src='/quokka-logo.svg'
+                      alt='QuokkaQ'
+                      fill
+                      className='object-contain'
+                      priority
+                    />
                   </div>
                 </div>
               </Link>
@@ -180,14 +207,12 @@ const AppSidebar = () => {
             <SidebarMenu>
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const isSettingsItem = item.href === '/admin/units' && item.hasSubmenu;
+                const isSettingsItem =
+                  item.href === '/admin/units' && item.hasSubmenu;
 
                 return (
                   <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={item.active}
-                    >
+                    <SidebarMenuButton asChild isActive={item.active}>
                       {isSettingsItem ? (
                         <Link href={item.href}>
                           <Icon />
@@ -240,21 +265,26 @@ const AppSidebar = () => {
                         <span>{user?.name || user?.email || 'User'}</span>
                       </SidebarMenuButton>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] ml-2">
-                      <div className="p-2 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">{tAdmin('settings.language', { defaultValue: 'Language' })}</span>
+                    <DropdownMenuContent className='ml-2 w-[--radix-dropdown-menu-trigger-width]'>
+                      <div className='space-y-2 p-2'>
+                        <div className='flex items-center justify-between'>
+                          <span className='text-sm'>
+                            {tAdmin('settings.language', {
+                              defaultValue: 'Language'
+                            })}
+                          </span>
                           <LanguageSwitcher />
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">{tAdmin('settings.theme', { defaultValue: 'Theme' })}</span>
+                        <div className='flex items-center justify-between'>
+                          <span className='text-sm'>
+                            {tAdmin('settings.theme', {
+                              defaultValue: 'Theme'
+                            })}
+                          </span>
                           <ThemeToggle />
                         </div>
                       </div>
-                      <DropdownMenuItem
-                        className="mt-2"
-                        onClick={logout}
-                      >
+                      <DropdownMenuItem className='mt-2' onClick={logout}>
                         Logout
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -267,7 +297,7 @@ const AppSidebar = () => {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/login">
+                <Link href='/login'>
                   <span>Login</span>
                 </Link>
               </SidebarMenuButton>

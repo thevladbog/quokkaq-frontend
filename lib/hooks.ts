@@ -16,14 +16,14 @@ import {
 export const useUsers = (search?: string) => {
   return useQuery({
     queryKey: ['users', search],
-    queryFn: () => usersApi.getAll(search),
+    queryFn: () => usersApi.getAll(search)
   });
 };
 
 export const useUser = (id: string) => {
   return useQuery({
     queryKey: ['users', id],
-    queryFn: () => usersApi.getById(id),
+    queryFn: () => usersApi.getById(id)
   });
 };
 
@@ -31,11 +31,14 @@ export const useCreateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userData: { name: string; email?: string; password?: string }) =>
-      usersApi.create(userData),
+    mutationFn: (userData: {
+      name: string;
+      email?: string;
+      password?: string;
+    }) => usersApi.create(userData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-    },
+    }
   });
 };
 
@@ -43,16 +46,19 @@ export const useCreateUser = () => {
 export const useUnits = () => {
   return useQuery({
     queryKey: ['units'],
-    queryFn: () => unitsApi.getAll(),
+    queryFn: () => unitsApi.getAll()
   });
 };
 
-export const useUnit = (id: string, options: { refetchInterval?: number } = {}) => {
+export const useUnit = (
+  id: string,
+  options: { refetchInterval?: number } = {}
+) => {
   return useQuery({
     queryKey: ['units', id],
     queryFn: () => unitsApi.getById(id),
     enabled: !!id,
-    refetchInterval: options.refetchInterval,
+    refetchInterval: options.refetchInterval
   });
 };
 
@@ -64,7 +70,7 @@ export const useCreateUnit = () => {
       unitsApi.create(unitData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['units'] });
-    },
+    }
   });
 };
 
@@ -78,7 +84,7 @@ export const useUpdateUnit = () => {
       queryClient.invalidateQueries({ queryKey: ['units'] });
       queryClient.invalidateQueries({ queryKey: ['units', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['unit', variables.id] });
-    },
+    }
   });
 };
 
@@ -86,7 +92,7 @@ export const useUnitServices = (unitId: string) => {
   return useQuery({
     queryKey: ['units', unitId, 'services'],
     queryFn: () => unitsApi.getServices(unitId),
-    enabled: !!unitId,
+    enabled: !!unitId
   });
 };
 
@@ -94,7 +100,7 @@ export const useUnitServicesTree = (unitId: string) => {
   return useQuery({
     queryKey: ['units', unitId, 'services-tree'],
     queryFn: () => unitsApi.getServicesTree(unitId),
-    enabled: !!unitId,
+    enabled: !!unitId
   });
 };
 
@@ -102,26 +108,44 @@ export const useUnitServicesTree = (unitId: string) => {
 export function useUpdateUser() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ userId, data }: { userId: string; data: { name?: string; email?: string; password?: string; roles?: string[] } }) =>
-      usersApi.update(userId, data),
+    mutationFn: ({
+      userId,
+      data
+    }: {
+      userId: string;
+      data: {
+        name?: string;
+        email?: string;
+        password?: string;
+        roles?: string[];
+      };
+    }) => usersApi.update(userId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-    },
+    }
   });
 }
 
-export const useUserUnits = (userId: string, options: { enabled?: boolean } = {}) => {
+export const useUserUnits = (
+  userId: string,
+  options: { enabled?: boolean } = {}
+) => {
   return useQuery({
     queryKey: ['users', userId, 'units'],
     queryFn: () => usersApi.getUserUnits(userId),
-    enabled: (options.enabled !== undefined ? options.enabled : !!userId),
+    enabled: options.enabled !== undefined ? options.enabled : !!userId
   });
 };
 
 export const useSetUserUnits = () => {
   return useMutation({
-    mutationFn: ({ userId, units }: { userId: string; units: { unitId: string; permissions: string[] }[] }) =>
-      usersApi.setUserUnits(userId, units),
+    mutationFn: ({
+      userId,
+      units
+    }: {
+      userId: string;
+      units: { unitId: string; permissions: string[] }[];
+    }) => usersApi.setUserUnits(userId, units)
   });
 };
 
@@ -130,37 +154,48 @@ export function useCurrentUser() {
   return useQuery({
     queryKey: ['me', token],
     queryFn: () => authApi.me(token!),
-    enabled: isAuthenticated && !!token,
+    enabled: isAuthenticated && !!token
   });
 }
 
 export const useAssignUserToUnit = () => {
   return useMutation({
-    mutationFn: ({ userId, unitId, permissions }: { userId: string; unitId: string; permissions?: string[] }) =>
-      usersApi.assignUserToUnit(userId, unitId, permissions),
+    mutationFn: ({
+      userId,
+      unitId,
+      permissions
+    }: {
+      userId: string;
+      unitId: string;
+      permissions?: string[];
+    }) => usersApi.assignUserToUnit(userId, unitId, permissions)
   });
 };
 
 export const useRemoveUserFromUnit = () => {
   return useMutation({
     mutationFn: ({ userId, unitId }: { userId: string; unitId: string }) =>
-      usersApi.removeUserFromUnit(userId, unitId),
+      usersApi.removeUserFromUnit(userId, unitId)
   });
 };
 
 // Ticket-related hooks
-export const useTickets = (unitId?: string, options: { enabled?: boolean } = {}) => {
+export const useTickets = (
+  unitId?: string,
+  options: { enabled?: boolean } = {}
+) => {
   return useQuery({
     queryKey: unitId ? ['tickets', unitId] : ['tickets'],
-    queryFn: () => (unitId ? ticketsApi.getByUnitId(unitId) : ticketsApi.getAll()),
-    enabled: options.enabled ?? (!!unitId || options.enabled === undefined),
+    queryFn: () =>
+      unitId ? ticketsApi.getByUnitId(unitId) : ticketsApi.getAll(),
+    enabled: options.enabled ?? (!!unitId || options.enabled === undefined)
   });
 };
 
 export const useTicket = (id: string) => {
   return useQuery({
     queryKey: ['tickets', id],
-    queryFn: () => ticketsApi.getById(id),
+    queryFn: () => ticketsApi.getById(id)
   });
 };
 
@@ -173,7 +208,7 @@ export const useCreateTicket = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['units'] });
-    },
+    }
   });
 };
 
@@ -184,7 +219,7 @@ export const useCompleteTicket = () => {
     mutationFn: (id: string) => ticketsApi.complete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-    },
+    }
   });
 };
 
@@ -195,7 +230,7 @@ export const useNoShowTicket = () => {
     mutationFn: (id: string) => ticketsApi.noShow(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-    },
+    }
   });
 };
 
@@ -206,7 +241,7 @@ export const useRecallTicket = () => {
     mutationFn: (id: string) => ticketsApi.recall(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-    },
+    }
   });
 };
 
@@ -218,7 +253,7 @@ export const usePickTicket = () => {
       ticketsApi.pick(id, counterId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-    },
+    }
   });
 };
 
@@ -229,7 +264,7 @@ export const useConfirmArrivalTicket = () => {
     mutationFn: (id: string) => ticketsApi.confirmArrival(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-    },
+    }
   });
 };
 
@@ -237,14 +272,18 @@ export const useTransferTicket = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (transferData: { id: string; toCounterId?: string; toUserId?: string }) =>
+    mutationFn: (transferData: {
+      id: string;
+      toCounterId?: string;
+      toUserId?: string;
+    }) =>
       ticketsApi.transfer(transferData.id, {
         toCounterId: transferData.toCounterId,
         toUserId: transferData.toUserId
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-    },
+    }
   });
 };
 
@@ -255,7 +294,7 @@ export const useReturnToQueueTicket = () => {
     mutationFn: (id: string) => ticketsApi.returnToQueue(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-    },
+    }
   });
 };
 
@@ -263,7 +302,11 @@ export const useCreateTicketInUnit = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (createData: { unitId: string; serviceId: string; preferredName?: string }) =>
+    mutationFn: (createData: {
+      unitId: string;
+      serviceId: string;
+      preferredName?: string;
+    }) =>
       unitsApi.createTicket(createData.unitId, {
         serviceId: createData.serviceId,
         preferredName: createData.preferredName
@@ -271,7 +314,7 @@ export const useCreateTicketInUnit = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['units'] });
-    },
+    }
   });
 };
 
@@ -285,12 +328,11 @@ export const useCreateBooking = () => {
       serviceId: string;
       userName?: string;
       userPhone?: string;
-      scheduledAt?: string
-    }) =>
-      bookingsApi.create(bookingData),
+      scheduledAt?: string;
+    }) => bookingsApi.create(bookingData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-    },
+    }
   });
 };
 
@@ -299,23 +341,26 @@ export const useCounters = (unitId: string) => {
   return useQuery({
     queryKey: ['units', unitId, 'counters'],
     queryFn: () => countersApi.getByUnitId(unitId),
-    enabled: !!unitId,
+    enabled: !!unitId
   });
 };
 
 export const useCallNextTicket = () => {
   return useMutation({
-    mutationFn: (callData: { counterId: string; strategy?: 'fifo' | 'by_service'; serviceId?: string }) =>
+    mutationFn: (callData: {
+      counterId: string;
+      strategy?: 'fifo' | 'by_service';
+      serviceId?: string;
+    }) =>
       countersApi.callNext(callData.counterId, {
         strategy: callData.strategy,
         serviceId: callData.serviceId
-      }),
+      })
   });
 };
 
 // Auth-related hooks
 export const useLogin = () => {
-
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       authApi.login({ email, password }),
@@ -324,12 +369,13 @@ export const useLogin = () => {
       if (typeof window !== 'undefined') {
         localStorage.setItem('access_token', data.accessToken);
       }
-    },
+    }
   });
 };
 
 export const useAuth = () => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
 
   return {
     isAuthenticated: !!token,
@@ -348,12 +394,13 @@ export const useAuth = () => {
   };
 };
 
-
 // Helper function to remove empty values (undefined, null, or empty strings)
-const filterEmptyValues = <T extends Record<string, unknown>>(obj: T): Partial<T> => {
+const filterEmptyValues = <T extends Record<string, unknown>>(
+  obj: T
+): Partial<T> => {
   const filtered: Partial<T> = {};
 
-  Object.keys(obj).forEach(key => {
+  Object.keys(obj).forEach((key) => {
     const k = key as keyof T;
     const value = obj[k];
     // Only include values that are not null, undefined, or empty strings
@@ -376,7 +423,7 @@ export const useCreateService = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
-    },
+    }
   });
 };
 
@@ -384,13 +431,16 @@ export const useUpdateService = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, ...serviceData }: { id: string } & Partial<Omit<Service, 'id'>>) => {
+    mutationFn: ({
+      id,
+      ...serviceData
+    }: { id: string } & Partial<Omit<Service, 'id'>>) => {
       const filteredData = filterEmptyValues(serviceData);
       return servicesApi.update(id, filteredData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
-    },
+    }
   });
 };
 
@@ -401,7 +451,7 @@ export const useDeleteService = () => {
     mutationFn: ({ id }: { id: string }) => servicesApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
-    },
+    }
   });
 };
 
@@ -426,11 +476,14 @@ export const useLogout = () => {
         try {
           window.dispatchEvent(new CustomEvent('auth:logout'));
         } catch (e) {
-          console.warn('Failed to dispatch auth:logout event from useLogout', e);
+          console.warn(
+            'Failed to dispatch auth:logout event from useLogout',
+            e
+          );
         }
       }
       // Redirect to the home page (or login) as a fallback
       router.push('/');
-    },
+    }
   });
 };

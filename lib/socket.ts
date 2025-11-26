@@ -28,7 +28,10 @@ class SocketClient {
   }
 
   private initSocket() {
-    if (this.socket?.readyState === WebSocket.OPEN || this.socket?.readyState === WebSocket.CONNECTING) {
+    if (
+      this.socket?.readyState === WebSocket.OPEN ||
+      this.socket?.readyState === WebSocket.CONNECTING
+    ) {
       return;
     }
 
@@ -46,10 +49,12 @@ class SocketClient {
 
       // Subscribe to unit room if unitId is set
       if (this.unitId) {
-        this.socket?.send(JSON.stringify({
-          action: 'subscribe',
-          unitId: this.unitId
-        }));
+        this.socket?.send(
+          JSON.stringify({
+            action: 'subscribe',
+            unitId: this.unitId
+          })
+        );
       }
     };
 
@@ -111,7 +116,7 @@ class SocketClient {
   private dispatch(event: string, data: unknown) {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
-      callbacks.forEach(callback => callback(data));
+      callbacks.forEach((callback) => callback(data));
     }
   }
 
@@ -148,12 +153,30 @@ class SocketClient {
     this.on('queue.snapshot', (data) => callback(data as QueueSnapshot));
   }
 
-  onSystemAlert(callback: (data: { message: string; severity: string }) => void) {
-    this.on('system.alert', (data) => callback(data as { message: string; severity: string }));
+  onSystemAlert(
+    callback: (data: { message: string; severity: string }) => void
+  ) {
+    this.on('system.alert', (data) =>
+      callback(data as { message: string; severity: string })
+    );
   }
 
-  onUnitEOD(callback: (data: { unitId: string; ticketsMarked: number; countersReleased: number }) => void) {
-    this.on('unit.eod', (data) => callback(data as { unitId: string; ticketsMarked: number; countersReleased: number }));
+  onUnitEOD(
+    callback: (data: {
+      unitId: string;
+      ticketsMarked: number;
+      countersReleased: number;
+    }) => void
+  ) {
+    this.on('unit.eod', (data) =>
+      callback(
+        data as {
+          unitId: string;
+          ticketsMarked: number;
+          countersReleased: number;
+        }
+      )
+    );
   }
 
   // Emit events - Backend currently doesn't handle these, but keeping for compatibility

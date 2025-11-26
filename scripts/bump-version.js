@@ -9,14 +9,14 @@ const packageJson = require(packageJsonPath);
 const versionParts = packageJson.version.split('.').map(Number);
 
 if (type === 'major') {
-    versionParts[0] += 1;
-    versionParts[1] = 0;
-    versionParts[2] = 0;
+  versionParts[0] += 1;
+  versionParts[1] = 0;
+  versionParts[2] = 0;
 } else if (type === 'minor') {
-    versionParts[1] += 1;
-    versionParts[2] = 0;
+  versionParts[1] += 1;
+  versionParts[2] = 0;
 } else {
-    versionParts[2] += 1;
+  versionParts[2] += 1;
 }
 
 const newVersion = versionParts.join('.');

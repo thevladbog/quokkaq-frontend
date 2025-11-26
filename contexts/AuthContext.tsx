@@ -1,6 +1,13 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+  useCallback
+} from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { authApi, User } from '../lib/api';
 
@@ -48,7 +55,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Determine locale from current pathname (mounted above Intl provider)
       const localeFromPath = pathname?.split('/')?.[1] || 'en';
       const knownLocales = ['en', 'ru'];
-      const loginPath = knownLocales.includes(localeFromPath) ? `/${localeFromPath}/login` : '/login';
+      const loginPath = knownLocales.includes(localeFromPath)
+        ? `/${localeFromPath}/login`
+        : '/login';
       router.push(loginPath as any);
       // Note: In a more sophisticated setup, we might want to use the router
       // to navigate to the localized login page, but this approach maintains consistency
@@ -60,13 +69,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setToken(newToken);
       localStorage.setItem('access_token', newToken);
       // Fetch user data after login
-      authApi.getMe()
-        .then(userData => {
+      authApi
+        .getMe()
+        .then((userData) => {
           setUser(userData);
           // Reset loading state after successful login
           setIsLoading(false);
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('Failed to fetch user after login:', error);
           setToken(null);
           setUser(null);
@@ -116,12 +126,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     if (typeof window !== 'undefined') {
-      window.addEventListener('auth:logout', handleGlobalLogout as EventListener);
+      window.addEventListener(
+        'auth:logout',
+        handleGlobalLogout as EventListener
+      );
     }
 
     return () => {
       if (typeof window !== 'undefined') {
-        window.removeEventListener('auth:logout', handleGlobalLogout as EventListener);
+        window.removeEventListener(
+          'auth:logout',
+          handleGlobalLogout as EventListener
+        );
       }
     };
   }, [logout]);
@@ -132,7 +148,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAuthenticated: !!token && !!user,
     login,
     logout,
-    isLoading,
+    isLoading
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

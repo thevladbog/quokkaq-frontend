@@ -13,15 +13,24 @@ interface ProtectedSidebarLayoutProps {
   loadingComponent?: ReactNode;
 }
 
-const ProtectedSidebarLayout = ({ children, allowedRoles, requiredPermission, fallbackComponent, loadingComponent }: ProtectedSidebarLayoutProps) => {
+const ProtectedSidebarLayout = ({
+  children,
+  allowedRoles,
+  requiredPermission,
+  fallbackComponent,
+  loadingComponent
+}: ProtectedSidebarLayoutProps) => {
   return (
-    <ProtectedRoute allowedRoles={allowedRoles} requiredPermission={requiredPermission} fallbackComponent={fallbackComponent} loadingComponent={loadingComponent}>
+    <ProtectedRoute
+      allowedRoles={allowedRoles}
+      requiredPermission={requiredPermission}
+      fallbackComponent={fallbackComponent}
+      loadingComponent={loadingComponent}
+    >
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <div className="p-4 md:p-8">
-            {children}
-          </div>
+          <div className='p-4 md:p-8'>{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </ProtectedRoute>

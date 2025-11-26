@@ -12,16 +12,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: 'pageTitles' });
 
   return {
-    title: t('login'),
+    title: t('login')
   };
 }
 
-export default function LoginLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  return (
-    <>{children}</>
-  );
+export default function LoginLayout({ children }: { children: ReactNode }) {
+  return <>{children}</>;
 }

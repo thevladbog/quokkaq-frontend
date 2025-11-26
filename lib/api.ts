@@ -7,29 +7,40 @@ const UserModelSchema = z.object({
   email: z.string().nullable().optional(),
   createdAt: z.string().nullable().optional(),
   unitIds: z.array(z.string()).optional(),
-  roles: z.union([
-    z.array(z.string()),
-    z.array(z.object({
-      role: z.object({
-        name: z.string()
-      })
-    }))
-  ]).optional().transform((val): string[] => {
-    if (!val) return [];
-    return val.map(v => {
-      if (typeof v === 'string') return v;
-      return v.role.name;
-    });
-  }),
+  roles: z
+    .union([
+      z.array(z.string()),
+      z.array(
+        z.object({
+          role: z.object({
+            name: z.string()
+          })
+        })
+      )
+    ])
+    .optional()
+    .transform((val): string[] => {
+      if (!val) return [];
+      return val.map((v) => {
+        if (typeof v === 'string') return v;
+        return v.role.name;
+      });
+    }),
   type: z.string().optional(),
   permissions: z.record(z.array(z.string())).optional(),
-  units: z.array(z.object({
-    unitId: z.string(),
-    permissions: z.array(z.string()).optional().default([]),
-    unit: z.object({
-      companyId: z.string(),
-    }).optional(),
-  })).optional(),
+  units: z
+    .array(
+      z.object({
+        unitId: z.string(),
+        permissions: z.array(z.string()).optional().default([]),
+        unit: z
+          .object({
+            companyId: z.string()
+          })
+          .optional()
+      })
+    )
+    .optional()
 });
 
 type ServiceModel = {
@@ -63,7 +74,10 @@ const ServiceModelSchema: z.ZodType<ServiceModel> = z.object({
   id: z.string(),
   unitId: z.string(),
   parentId: z.string().nullable().optional(),
-  parent: z.lazy(() => ServiceModelSchema).nullable().optional(),
+  parent: z
+    .lazy(() => ServiceModelSchema)
+    .nullable()
+    .optional(),
   children: z.array(z.lazy(() => ServiceModelSchema)).optional(),
   name: z.string(),
   nameRu: z.string().nullable().optional(),
@@ -83,7 +97,7 @@ const ServiceModelSchema: z.ZodType<ServiceModel> = z.object({
   gridRow: z.number().nullable().optional(),
   gridCol: z.number().nullable().optional(),
   gridRowSpan: z.number().nullable().optional(),
-  gridColSpan: z.number().nullable().optional(),
+  gridColSpan: z.number().nullable().optional()
 });
 
 const UnitModelSchema = z.object({
@@ -93,7 +107,7 @@ const UnitModelSchema = z.object({
   companyId: z.string(),
   timezone: z.string(),
   config: z.custom<UnitConfig>().nullable().optional(),
-  services: z.array(ServiceModelSchema).optional(),
+  services: z.array(ServiceModelSchema).optional()
 });
 
 const TicketModelSchema = z.object({
@@ -106,19 +120,25 @@ const TicketModelSchema = z.object({
   createdAt: z.string().nullable().optional(),
   calledAt: z.string().nullable().optional(),
   maxWaitingTime: z.number().nullable().optional(),
-  counter: z.object({
-    id: z.string(),
-    name: z.string(),
-  }).nullable().optional(),
-  preRegistration: z.object({
-    id: z.string(),
-    customerName: z.string(),
-    customerPhone: z.string(),
-    code: z.string(),
-    date: z.string(),
-    time: z.string(),
-    comment: z.string().optional(),
-  }).nullable().optional(),
+  counter: z
+    .object({
+      id: z.string(),
+      name: z.string()
+    })
+    .nullable()
+    .optional(),
+  preRegistration: z
+    .object({
+      id: z.string(),
+      customerName: z.string(),
+      customerPhone: z.string(),
+      code: z.string(),
+      date: z.string(),
+      time: z.string(),
+      comment: z.string().optional()
+    })
+    .nullable()
+    .optional()
 });
 
 const BookingModelSchema = z.object({
@@ -130,7 +150,7 @@ const BookingModelSchema = z.object({
   scheduledAt: z.string().nullable().optional(),
   status: z.string(),
   code: z.string(),
-  createdAt: z.string().nullable().optional(),
+  createdAt: z.string().nullable().optional()
 });
 
 const CounterModelSchema = z.object({
@@ -138,9 +158,11 @@ const CounterModelSchema = z.object({
   unitId: z.string(),
   name: z.string(),
   assignedTo: z.string().nullable().optional(),
-  assignedUser: z.object({
-    name: z.string(),
-  }).optional(),
+  assignedUser: z
+    .object({
+      name: z.string()
+    })
+    .optional()
 });
 
 export type User = z.infer<typeof UserModelSchema>;
@@ -225,7 +247,9 @@ async function apiRequest<T>(
     const lsLocale = localStorage.getItem('NEXT_LOCALE');
     const navLocale = window.navigator?.language?.split('-')[0] || 'en';
     const inferredLocale = lsLocale || navLocale;
-    currentLocale = ['en', 'ru'].includes(inferredLocale) ? inferredLocale : 'en';
+    currentLocale = ['en', 'ru'].includes(inferredLocale)
+      ? inferredLocale
+      : 'en';
   }
 
   const url = `${API_BASE_URL}${endpoint}`;
@@ -233,11 +257,11 @@ async function apiRequest<T>(
   const config: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }), // Add token if available
+      ...(token && { Authorization: `Bearer ${token}` }), // Add token if available
       ...(currentLocale && { 'Accept-Language': currentLocale }), // Add locale to headers
-      ...options.headers,
+      ...options.headers
     },
-    ...options,
+    ...options
   };
 
   try {
@@ -252,8 +276,8 @@ async function apiRequest<T>(
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${refreshToken}`,
-            },
+              Authorization: `Bearer ${refreshToken}`
+            }
           });
 
           if (refreshResponse.ok) {
@@ -265,14 +289,16 @@ async function apiRequest<T>(
               ...options,
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${refreshData.accessToken}`,
-                ...options.headers,
-              },
+                Authorization: `Bearer ${refreshData.accessToken}`,
+                ...options.headers
+              }
             };
 
             const retryResponse = await fetch(url, retryConfig);
             if (!retryResponse.ok) {
-              throw new Error(`API Error: ${retryResponse.status} - ${await retryResponse.text()}`);
+              throw new Error(
+                `API Error: ${retryResponse.status} - ${await retryResponse.text()}`
+              );
             }
 
             const retryData = await retryResponse.json();
@@ -316,7 +342,12 @@ async function apiRequest<T>(
         return schema.parse(data);
       } catch (zodError) {
         // Log the full response and schema mismatch to aid debugging
-        console.error('Zod parse error while validating API response for', url, zodError, { data });
+        console.error(
+          'Zod parse error while validating API response for',
+          url,
+          zodError,
+          { data }
+        );
         throw zodError;
       }
     }
@@ -333,70 +364,100 @@ export const authApi = {
   login: (credentials: { email: string; password: string }) =>
     apiRequest<{ token: string }>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify(credentials),
-    }).then(res => ({ accessToken: res.token })), // Map 'token' to 'accessToken' for frontend compatibility
+      body: JSON.stringify(credentials)
+    }).then((res) => ({ accessToken: res.token })), // Map 'token' to 'accessToken' for frontend compatibility
 
   me: (token: string) =>
-    apiRequest<User>('/auth/me', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
+    apiRequest<User>(
+      '/auth/me',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       },
-    }, UserModelSchema),
+      UserModelSchema
+    ),
 
-  getMe: () =>
-    apiRequest<User>('/auth/me', {}, UserModelSchema),
+  getMe: () => apiRequest<User>('/auth/me', {}, UserModelSchema),
 
   refresh: (refreshToken: string) =>
     apiRequest<{ accessToken: string }>('/auth/refresh', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${refreshToken}`,
-      },
-    }),
+        Authorization: `Bearer ${refreshToken}`
+      }
+    })
 };
 
 // User API functions
 export const usersApi = {
   getAll: (search?: string) => {
     const queryParams = search ? `?search=${encodeURIComponent(search)}` : '';
-    return apiRequest<User[]>(`/users${queryParams}`, {}, z.array(UserModelSchema));
+    return apiRequest<User[]>(
+      `/users${queryParams}`,
+      {},
+      z.array(UserModelSchema)
+    );
   },
 
   getById: (id: string) =>
     apiRequest<User>(`/users/${id}`, {}, UserModelSchema),
 
   create: (userData: { name: string; email?: string; password?: string }) =>
-    apiRequest<User>('/users', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    }, UserModelSchema),
+    apiRequest<User>(
+      '/users',
+      {
+        method: 'POST',
+        body: JSON.stringify(userData)
+      },
+      UserModelSchema
+    ),
 
   getUserUnits: (userId: string) =>
     apiRequest<unknown[]>(`/users/${userId}/units`, {}),
 
-  setUserUnits: (userId: string, units: { unitId: string; permissions: string[] }[]) =>
+  setUserUnits: (
+    userId: string,
+    units: { unitId: string; permissions: string[] }[]
+  ) =>
     apiRequest<unknown>(`/users/${userId}/units`, {
       method: 'POST',
-      body: JSON.stringify({ units }),
+      body: JSON.stringify({ units })
     }),
 
-  assignUserToUnit: (userId: string, unitId: string, permissions: string[] = []) =>
+  assignUserToUnit: (
+    userId: string,
+    unitId: string,
+    permissions: string[] = []
+  ) =>
     apiRequest<unknown>(`/users/${userId}/units/assign`, {
       method: 'POST',
-      body: JSON.stringify({ unitId, permissions }),
+      body: JSON.stringify({ unitId, permissions })
     }),
 
   removeUserFromUnit: (userId: string, unitId: string) =>
     apiRequest<unknown>(`/users/${userId}/units/remove`, {
       method: 'POST',
-      body: JSON.stringify({ unitId }),
+      body: JSON.stringify({ unitId })
     }),
 
-  update: (userId: string, data: { name?: string; email?: string; password?: string; roles?: string[] }) =>
-    apiRequest<User>(`/users/${userId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    }, UserModelSchema),
+  update: (
+    userId: string,
+    data: {
+      name?: string;
+      email?: string;
+      password?: string;
+      roles?: string[];
+    }
+  ) =>
+    apiRequest<User>(
+      `/users/${userId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      },
+      UserModelSchema
+    )
 };
 
 // Unit API functions
@@ -407,31 +468,50 @@ export const unitsApi = {
     apiRequest<Unit>(`/units/${id}`, {}, UnitModelSchema),
 
   getServices: (unitId: string) =>
-    apiRequest<Service[]>(`/units/${unitId}/services`, {}, z.array(ServiceModelSchema)),
+    apiRequest<Service[]>(
+      `/units/${unitId}/services`,
+      {},
+      z.array(ServiceModelSchema)
+    ),
 
   getTickets: (unitId: string) =>
-    apiRequest<Ticket[]>(`/units/${unitId}/tickets`, {}, z.array(TicketModelSchema)),
+    apiRequest<Ticket[]>(
+      `/units/${unitId}/tickets`,
+      {},
+      z.array(TicketModelSchema)
+    ),
 
   getServicesTree: (unitId: string) =>
-    apiRequest<Service[]>(`/units/${unitId}/services-tree`, {}, z.array(ServiceModelSchema)),
+    apiRequest<Service[]>(
+      `/units/${unitId}/services-tree`,
+      {},
+      z.array(ServiceModelSchema)
+    ),
 
   create: (data: { name: string; code: string; companyId: string }) =>
     apiRequest<Unit>('/units', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     }),
 
   update: (id: string, data: Partial<Unit>) =>
     apiRequest<Unit>(`/units/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     }),
 
-  createTicket: (unitId: string, ticketData: { serviceId: string; preferredName?: string }) =>
-    apiRequest<Ticket>(`/units/${unitId}/tickets`, {
-      method: 'POST',
-      body: JSON.stringify(ticketData),
-    }, TicketModelSchema),
+  createTicket: (
+    unitId: string,
+    ticketData: { serviceId: string; preferredName?: string }
+  ) =>
+    apiRequest<Ticket>(
+      `/units/${unitId}/tickets`,
+      {
+        method: 'POST',
+        body: JSON.stringify(ticketData)
+      },
+      TicketModelSchema
+    ),
 
   // Material and Ad Settings endpoints
   uploadMaterial: async (unitId: string, file: File) => {
@@ -446,9 +526,9 @@ export const unitsApi = {
     const response = await fetch(`${API_BASE_URL}/units/${unitId}/materials`, {
       method: 'POST',
       headers: {
-        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...(token && { Authorization: `Bearer ${token}` })
       },
-      body: formData,
+      body: formData
     });
 
     if (!response.ok) {
@@ -463,74 +543,118 @@ export const unitsApi = {
 
   deleteMaterial: (unitId: string, materialId: string) =>
     apiRequest<unknown>(`/units/${unitId}/materials/${materialId}`, {
-      method: 'DELETE',
+      method: 'DELETE'
     }),
 
-  updateAdSettings: (unitId: string, settings: {
-    width?: number;
-    duration?: number;
-    activeMaterialIds?: string[];
-  }) =>
+  updateAdSettings: (
+    unitId: string,
+    settings: {
+      width?: number;
+      duration?: number;
+      activeMaterialIds?: string[];
+    }
+  ) =>
     apiRequest<Unit>(`/units/${unitId}/ad-settings`, {
       method: 'PATCH',
-      body: JSON.stringify(settings),
-    }),
+      body: JSON.stringify(settings)
+    })
 };
 
 // Ticket API functions
 export const ticketsApi = {
-  getAll: () => apiRequest<Ticket[]>('/tickets', {}, z.array(TicketModelSchema)),
+  getAll: () =>
+    apiRequest<Ticket[]>('/tickets', {}, z.array(TicketModelSchema)),
 
-  getByUnitId: (unitId: string) => apiRequest<Ticket[]>(`/units/${unitId}/tickets`, {}, z.array(TicketModelSchema)),
+  getByUnitId: (unitId: string) =>
+    apiRequest<Ticket[]>(
+      `/units/${unitId}/tickets`,
+      {},
+      z.array(TicketModelSchema)
+    ),
 
   getById: (id: string) =>
     apiRequest<Ticket>(`/tickets/${id}`, {}, TicketModelSchema),
 
   create: (ticketData: { unitId: string; serviceId: string }) =>
-    apiRequest<Ticket>('/tickets', {
-      method: 'POST',
-      body: JSON.stringify(ticketData),
-    }, TicketModelSchema),
+    apiRequest<Ticket>(
+      '/tickets',
+      {
+        method: 'POST',
+        body: JSON.stringify(ticketData)
+      },
+      TicketModelSchema
+    ),
 
   complete: (id: string) =>
-    apiRequest<Ticket>(`/tickets/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status: 'served' }),
-    }, TicketModelSchema),
+    apiRequest<Ticket>(
+      `/tickets/${id}/status`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'served' })
+      },
+      TicketModelSchema
+    ),
 
   noShow: (id: string) =>
-    apiRequest<Ticket>(`/tickets/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status: 'no_show' }),
-    }, TicketModelSchema),
+    apiRequest<Ticket>(
+      `/tickets/${id}/status`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'no_show' })
+      },
+      TicketModelSchema
+    ),
 
   recall: (id: string) =>
-    apiRequest<Ticket>(`/tickets/${id}/recall`, {
-      method: 'POST',
-    }, TicketModelSchema),
+    apiRequest<Ticket>(
+      `/tickets/${id}/recall`,
+      {
+        method: 'POST'
+      },
+      TicketModelSchema
+    ),
 
   pick: (id: string, counterId: string) =>
-    apiRequest<Ticket>(`/tickets/${id}/pick`, {
-      method: 'POST',
-      body: JSON.stringify({ counterId }),
-    }, TicketModelSchema),
+    apiRequest<Ticket>(
+      `/tickets/${id}/pick`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ counterId })
+      },
+      TicketModelSchema
+    ),
 
   confirmArrival: (id: string) =>
-    apiRequest<Ticket>(`/tickets/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status: 'in_service' }),
-    }, TicketModelSchema),
+    apiRequest<Ticket>(
+      `/tickets/${id}/status`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'in_service' })
+      },
+      TicketModelSchema
+    ),
 
-  transfer: (id: string, transferData: { toCounterId?: string; toUserId?: string }) =>
-    apiRequest<Ticket>(`/tickets/${id}/transfer`, {
-      method: 'POST',
-      body: JSON.stringify(transferData),
-    }, TicketModelSchema),
+  transfer: (
+    id: string,
+    transferData: { toCounterId?: string; toUserId?: string }
+  ) =>
+    apiRequest<Ticket>(
+      `/tickets/${id}/transfer`,
+      {
+        method: 'POST',
+        body: JSON.stringify(transferData)
+      },
+      TicketModelSchema
+    ),
 
   returnToQueue: (id: string) =>
-    apiRequest<Ticket>(`/tickets/${id}/return`, {
-      method: 'POST',
-    }, TicketModelSchema),
+    apiRequest<Ticket>(
+      `/tickets/${id}/return`,
+      {
+        method: 'POST'
+      },
+      TicketModelSchema
+    )
 };
 
 // Booking API functions
@@ -540,79 +664,122 @@ export const bookingsApi = {
     serviceId: string;
     userName?: string;
     userPhone?: string;
-    scheduledAt?: string
+    scheduledAt?: string;
   }) =>
-    apiRequest<Booking>('/bookings', {
-      method: 'POST',
-      body: JSON.stringify(bookingData),
-    }, BookingModelSchema),
+    apiRequest<Booking>(
+      '/bookings',
+      {
+        method: 'POST',
+        body: JSON.stringify(bookingData)
+      },
+      BookingModelSchema
+    )
 };
 
 // Service API functions
 export const servicesApi = {
-  getAll: () => apiRequest<Service[]>('/services', {}, z.array(ServiceModelSchema)),
+  getAll: () =>
+    apiRequest<Service[]>('/services', {}, z.array(ServiceModelSchema)),
 
   getById: (id: string) =>
     apiRequest<Service>(`/services/${id}`, {}, ServiceModelSchema),
 
   getByUnitId: (unitId: string) =>
-    apiRequest<Service[]>(`/services/unit/${unitId}`, {}, z.array(ServiceModelSchema)),
+    apiRequest<Service[]>(
+      `/services/unit/${unitId}`,
+      {},
+      z.array(ServiceModelSchema)
+    ),
 
   create: (serviceData: Omit<Service, 'id'>) =>
-    apiRequest<Service>('/services', {
-      method: 'POST',
-      body: JSON.stringify(serviceData),
-    }, ServiceModelSchema),
+    apiRequest<Service>(
+      '/services',
+      {
+        method: 'POST',
+        body: JSON.stringify(serviceData)
+      },
+      ServiceModelSchema
+    ),
 
   update: (id: string, serviceData: Partial<Service>) =>
-    apiRequest<Service>(`/services/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(serviceData),
-    }, ServiceModelSchema),
+    apiRequest<Service>(
+      `/services/${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(serviceData)
+      },
+      ServiceModelSchema
+    ),
 
   delete: (id: string) =>
     apiRequest<unknown>(`/services/${id}`, {
-      method: 'DELETE',
-    }),
+      method: 'DELETE'
+    })
 };
 
 // Counter API functions
 export const countersApi = {
-  callNext: (counterId: string, callData?: { strategy?: 'fifo' | 'by_service'; serviceId?: string }) =>
-    apiRequest<{ ok: boolean; ticket?: Ticket; message?: string }>(`/counters/${counterId}/call-next`, {
-      method: 'POST',
-      body: JSON.stringify(callData || {}),
-    }),
+  callNext: (
+    counterId: string,
+    callData?: { strategy?: 'fifo' | 'by_service'; serviceId?: string }
+  ) =>
+    apiRequest<{ ok: boolean; ticket?: Ticket; message?: string }>(
+      `/counters/${counterId}/call-next`,
+      {
+        method: 'POST',
+        body: JSON.stringify(callData || {})
+      }
+    ),
 
   getByUnitId: (unitId: string) =>
-    apiRequest<Counter[]>(`/units/${unitId}/counters`, {}, z.array(CounterModelSchema)),
+    apiRequest<Counter[]>(
+      `/units/${unitId}/counters`,
+      {},
+      z.array(CounterModelSchema)
+    ),
 
   create: (unitId: string, data: { name: string }) =>
-    apiRequest<Counter>(`/units/${unitId}/counters`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }, CounterModelSchema),
+    apiRequest<Counter>(
+      `/units/${unitId}/counters`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data)
+      },
+      CounterModelSchema
+    ),
 
   update: (id: string, data: { name?: string; assignedTo?: string }) =>
-    apiRequest<Counter>(`/counters/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    }, CounterModelSchema),
+    apiRequest<Counter>(
+      `/counters/${id}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      },
+      CounterModelSchema
+    ),
 
   delete: (id: string) =>
     apiRequest<unknown>(`/counters/${id}`, {
-      method: 'DELETE',
+      method: 'DELETE'
     }),
 
   occupy: (id: string) =>
-    apiRequest<Counter>(`/counters/${id}/occupy`, {
-      method: 'POST',
-    }, CounterModelSchema),
+    apiRequest<Counter>(
+      `/counters/${id}/occupy`,
+      {
+        method: 'POST'
+      },
+      CounterModelSchema
+    ),
 
   release: (id: string) =>
-    apiRequest<Counter>(`/counters/${id}/release`, {
-      method: 'POST',
-    }, CounterModelSchema),
+    apiRequest<Counter>(
+      `/counters/${id}/release`,
+      {
+        method: 'POST'
+      },
+      CounterModelSchema
+    )
 };
 
 // Shift API functions
@@ -625,24 +792,29 @@ export const shiftApi = {
     }>(`/units/${unitId}/shift/dashboard`, {}),
 
   getQueue: (unitId: string) =>
-    apiRequest<Array<Ticket & { service: Service }>>(`/units/${unitId}/shift/queue`, {}),
+    apiRequest<Array<Ticket & { service: Service }>>(
+      `/units/${unitId}/shift/queue`,
+      {}
+    ),
 
   getCounters: (unitId: string) =>
-    apiRequest<Array<{
-      id: string;
-      name: string;
-      assignedTo: string | null;
-      assignedUser?: { name: string };
-      isOccupied: boolean;
-      activeTicket: Ticket | null;
-    }>>(`/units/${unitId}/shift/counters`, {}),
+    apiRequest<
+      Array<{
+        id: string;
+        name: string;
+        assignedTo: string | null;
+        assignedUser?: { name: string };
+        isOccupied: boolean;
+        activeTicket: Ticket | null;
+      }>
+    >(`/units/${unitId}/shift/counters`, {}),
 
   forceReleaseCounter: (counterId: string) =>
     apiRequest<{
       counter: Counter;
       completedTicket: Ticket | null;
     }>(`/counters/${counterId}/force-release`, {
-      method: 'POST',
+      method: 'POST'
     }),
 
   executeEOD: (unitId: string) =>
@@ -653,8 +825,8 @@ export const shiftApi = {
       countersReleased: number;
       sequencesReset: number;
     }>(`/units/${unitId}/shift/eod`, {
-      method: 'POST',
-    }),
+      method: 'POST'
+    })
 };
 
 // Slot API functions
@@ -667,12 +839,15 @@ export const slotsApi = {
       workingDays: string[];
     }>(`/units/${unitId}/slots/config`, {}),
 
-  updateConfig: (unitId: string, config: {
-    startTime: string;
-    endTime: string;
-    intervalMinutes: number;
-    workingDays: string[];
-  }) =>
+  updateConfig: (
+    unitId: string,
+    config: {
+      startTime: string;
+      endTime: string;
+      intervalMinutes: number;
+      workingDays: string[];
+    }
+  ) =>
     apiRequest<{
       startTime: string;
       endTime: string;
@@ -680,32 +855,37 @@ export const slotsApi = {
       workingDays: string[];
     }>(`/units/${unitId}/slots/config`, {
       method: 'PUT',
-      body: JSON.stringify(config),
+      body: JSON.stringify(config)
     }),
 
   getCapacities: (unitId: string) =>
-    apiRequest<Array<{
+    apiRequest<
+      Array<{
+        dayOfWeek: string;
+        startTime: string;
+        serviceId: string;
+        capacity: number;
+      }>
+    >(`/units/${unitId}/slots/capacities`, {}),
+
+  updateCapacities: (
+    unitId: string,
+    capacities: Array<{
       dayOfWeek: string;
       startTime: string;
       serviceId: string;
       capacity: number;
-    }>>(`/units/${unitId}/slots/capacities`, {}),
-
-  updateCapacities: (unitId: string, capacities: Array<{
-    dayOfWeek: string;
-    startTime: string;
-    serviceId: string;
-    capacity: number;
-  }>) =>
+    }>
+  ) =>
     apiRequest<unknown>(`/units/${unitId}/slots/capacities`, {
       method: 'PUT',
-      body: JSON.stringify(capacities),
+      body: JSON.stringify(capacities)
     }),
 
   generate: (unitId: string, from: string, to: string) =>
     apiRequest<void>(`/units/${unitId}/slots/generate`, {
       method: 'POST',
-      body: JSON.stringify({ from, to }),
+      body: JSON.stringify({ from, to })
     }),
 
   getDay: (unitId: string, date: string) =>
@@ -724,18 +904,22 @@ export const slotsApi = {
       }>;
     } | null>(`/units/${unitId}/slots/day/${date}`, {}),
 
-  updateDay: (unitId: string, date: string, data: {
-    isDayOff: boolean;
-    slots: Array<{
-      serviceId: string;
-      startTime: string;
-      capacity: number;
-    }>;
-  }) =>
+  updateDay: (
+    unitId: string,
+    date: string,
+    data: {
+      isDayOff: boolean;
+      slots: Array<{
+        serviceId: string;
+        startTime: string;
+        capacity: number;
+      }>;
+    }
+  ) =>
     apiRequest<void>(`/units/${unitId}/slots/day/${date}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
-    }),
+      body: JSON.stringify(data)
+    })
 };
 
 // Pre-registration API functions
@@ -760,37 +944,46 @@ export const preRegistrationsApi = {
   getByUnitId: (unitId: string) =>
     apiRequest<PreRegistration[]>(`/units/${unitId}/pre-registrations`, {}),
 
-  create: (unitId: string, data: {
-    serviceId: string;
-    date: string;
-    time: string;
-    customerName: string;
-    customerPhone: string;
-    comment?: string;
-  }) =>
+  create: (
+    unitId: string,
+    data: {
+      serviceId: string;
+      date: string;
+      time: string;
+      customerName: string;
+      customerPhone: string;
+      comment?: string;
+    }
+  ) =>
     apiRequest<PreRegistration>(`/units/${unitId}/pre-registrations`, {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     }),
 
   update: (unitId: string, id: string, data: Partial<PreRegistration>) =>
     apiRequest<PreRegistration>(`/units/${unitId}/pre-registrations/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     }),
 
   getAvailableSlots: (unitId: string, serviceId: string, date: string) =>
-    apiRequest<string[]>(`/units/${unitId}/pre-registrations/slots?serviceId=${serviceId}&date=${date}`, {}),
+    apiRequest<string[]>(
+      `/units/${unitId}/pre-registrations/slots?serviceId=${serviceId}&date=${date}`,
+      {}
+    ),
 
   validate: (unitId: string, code: string) =>
     apiRequest<PreRegistration>(`/units/${unitId}/pre-registrations/validate`, {
       method: 'POST',
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code })
     }),
 
   redeem: (unitId: string, code: string) =>
-    apiRequest<{ success: boolean; ticket?: Ticket; message?: string }>(`/units/${unitId}/pre-registrations/redeem`, {
-      method: 'POST',
-      body: JSON.stringify({ code }),
-    }),
+    apiRequest<{ success: boolean; ticket?: Ticket; message?: string }>(
+      `/units/${unitId}/pre-registrations/redeem`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ code })
+      }
+    )
 };

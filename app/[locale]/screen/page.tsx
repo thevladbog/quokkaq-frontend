@@ -30,29 +30,35 @@ export default function ScreenPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Spinner className="w-8 h-8" />
+      <div className='bg-background flex min-h-screen items-center justify-center'>
+        <Spinner className='h-8 w-8' />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-8">{t('selectUnit')}</h1>
+    <div className='bg-background min-h-screen p-8'>
+      <div className='mx-auto max-w-4xl'>
+        <h1 className='mb-8 text-center text-4xl font-bold'>
+          {t('selectUnit')}
+        </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
           {units.map((unit) => (
             <Card
               key={unit.id}
-              className="cursor-pointer hover:shadow-lg transition-shadow border-primary/20 hover:border-primary"
-              onClick={() => router.push(`/screen/${unit.id}` as `/screen/${string}`)}
+              className='border-primary/20 hover:border-primary cursor-pointer transition-shadow hover:shadow-lg'
+              onClick={() =>
+                router.push(`/screen/${unit.id}` as `/screen/${string}`)
+              }
             >
               <CardHeader>
-                <CardTitle className="text-xl text-center">{unit.name}</CardTitle>
+                <CardTitle className='text-center text-xl'>
+                  {unit.name}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center text-muted-foreground">
+                <div className='text-muted-foreground text-center'>
                   {unit.code}
                 </div>
               </CardContent>
@@ -61,7 +67,7 @@ export default function ScreenPage() {
         </div>
 
         {units.length === 0 && (
-          <div className="text-center text-muted-foreground mt-12">
+          <div className='text-muted-foreground mt-12 text-center'>
             {t('noUnitsFound')}
           </div>
         )}

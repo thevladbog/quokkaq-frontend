@@ -9,7 +9,9 @@ interface KioskLanguageSwitcherProps {
   className?: string;
 }
 
-export default function KioskLanguageSwitcher({ className }: KioskLanguageSwitcherProps) {
+export default function KioskLanguageSwitcher({
+  className
+}: KioskLanguageSwitcherProps) {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();

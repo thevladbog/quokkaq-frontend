@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: 'pageTitles' });
 
   return {
-    title: t('home'),
+    title: t('home')
   };
 }
 
@@ -37,9 +37,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
         <SystemStatusGuard>
-          <ConditionalLayout>
-            {children}
-          </ConditionalLayout>
+          <ConditionalLayout>{children}</ConditionalLayout>
         </SystemStatusGuard>
       </AuthProvider>
     </NextIntlClientProvider>
