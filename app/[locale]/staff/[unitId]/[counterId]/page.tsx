@@ -7,7 +7,7 @@ import {
     useTickets,
     useCompleteTicket,
     useNoShowTicket,
-    useRecallTicket,
+
     useCallNextTicket,
     useTransferTicket,
     useCounters,
@@ -62,14 +62,13 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
     const counterName = counters?.find(c => c.id === counterId)?.name || counterId;
 
     // Ticket Hooks
-    const { data: tickets = [], isLoading, error, refetch } = useTickets(unitId, {
+    const { data: tickets = [], error, refetch } = useTickets(unitId, {
         enabled: !!unitId,
     });
     const completeMutation = useCompleteTicket();
     const noShowMutation = useNoShowTicket();
     const callNextMutation = useCallNextTicket();
     const transferMutation = useTransferTicket();
-    const recallMutation = useRecallTicket();
     const pickMutation = usePickTicket();
     const confirmArrivalMutation = useConfirmArrivalTicket();
 
@@ -79,7 +78,7 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
             toast.success(t('messages.ticketCreated'));
             refetch();
         },
-        onError: (error: Error) => {
+        onError: () => {
             toast.error(t('messages.failed', { action: 'create ticket' }));
         }
     });
@@ -102,12 +101,7 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
     const currentTicket = tickets.find(ticket => ticket.status === 'called' || ticket.status === 'in_service');
     const waitingTickets = tickets.filter(ticket => ticket.status === 'waiting');
 
-    // Live timer
-    const [now, setNow] = useState(() => Date.now());
-    useEffect(() => {
-        const id = setInterval(() => setNow(Date.now()), 1000);
-        return () => clearInterval(id);
-    }, []);
+
 
     // WebSocket Connection
     useEffect(() => {
@@ -521,7 +515,7 @@ export default function StaffWorkspacePage({ params }: StaffWorkspacePageProps) 
 
 
 
-function StaffTicketItem({ ticket, onCall, disabled, t, onShowDetails }: { ticket: Ticket, onCall: () => void, disabled: boolean, t: (key: string, values?: Record<string, any>) => string, onShowDetails: () => void }) {
+function StaffTicketItem({ ticket, onCall, disabled, t, onShowDetails }: { ticket: Ticket, onCall: () => void, disabled: boolean, t: (key: string, values?: Record<string, string | number | Date>) => string, onShowDetails: () => void }) {
     const { background, formatTime, elapsed } = useTicketTimer(ticket.createdAt || undefined, ticket.maxWaitingTime);
 
     return (
@@ -574,7 +568,7 @@ function StaffTicketItem({ ticket, onCall, disabled, t, onShowDetails }: { ticke
     );
 }
 
-function CurrentTicketDisplay({ ticket, t, onShowDetails }: { ticket: Ticket, t: (key: string, values?: Record<string, any>) => string, onShowDetails: () => void }) {
+function CurrentTicketDisplay({ ticket, t, onShowDetails }: { ticket: Ticket, t: (key: string, values?: Record<string, string | number | Date>) => string, onShowDetails: () => void }) {
     const isInService = ticket.status === 'in_service';
 
     // Service Timer (Active)
@@ -668,7 +662,7 @@ function CurrentTicketDisplay({ ticket, t, onShowDetails }: { ticket: Ticket, t:
                         </div>
                         {ticket.preRegistration.comment && (
                             <div className="text-xs italic mt-1">
-                                "{ticket.preRegistration.comment}"
+                                &quot;{ticket.preRegistration.comment}&quot;
                             </div>
                         )}
                     </div>

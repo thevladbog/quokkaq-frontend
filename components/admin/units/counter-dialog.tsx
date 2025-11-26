@@ -30,18 +30,41 @@ export function CounterDialog({
     counter,
 }: CounterDialogProps) {
     const t = useTranslations('admin.counters');
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>
+                        {counter ? t('edit') : t('add')}
+                    </DialogTitle>
+                </DialogHeader>
+                {open && (
+                    <CounterForm
+                        unitId={unitId}
+                        counter={counter}
+                        onOpenChange={onOpenChange}
+                    />
+                )}
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function CounterForm({
+    unitId,
+    counter,
+    onOpenChange,
+}: {
+    unitId: string;
+    counter?: Counter | null;
+    onOpenChange: (open: boolean) => void;
+}) {
+    const t = useTranslations('admin.counters');
     const tGeneral = useTranslations('general');
     const queryClient = useQueryClient();
     const isEditing = !!counter;
-    const [name, setName] = useState('');
-
-    useEffect(() => {
-        if (counter) {
-            setName(counter.name);
-        } else {
-            setName('');
-        }
-    }, [counter, open]);
+    const [name, setName] = useState(counter?.name || '');
 
     const createMutation = useMutation({
         mutationFn: (data: { name: string }) =>
@@ -84,40 +107,31 @@ export function CounterDialog({
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>
-                        {isEditing ? t('edit') : t('add')}
-                    </DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="name">{t('name')}</Label>
-                        <Input
-                            id="name"
-                            placeholder="e.g. Counter 1"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                        />
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => onOpenChange(false)}
-                        >
-                            {tGeneral('cancel')}
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={createMutation.isPending || updateMutation.isPending}
-                        >
-                            {isEditing ? t('save') : t('create')}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="name">{t('name')}</Label>
+                <Input
+                    id="name"
+                    placeholder="e.g. Counter 1"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                />
+            </div>
+            <DialogFooter>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                >
+                    {tGeneral('cancel')}
+                </Button>
+                <Button
+                    type="submit"
+                    disabled={createMutation.isPending || updateMutation.isPending}
+                >
+                    {isEditing ? t('save') : t('create')}
+                </Button>
+            </DialogFooter>
+        </form>
     );
 }

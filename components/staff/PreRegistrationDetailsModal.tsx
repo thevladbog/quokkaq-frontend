@@ -78,7 +78,7 @@ export function PreRegistrationDetailsModal({
                             <FileText className="h-4 w-4 text-muted-foreground justify-self-end mt-1" />
                             <div className="col-span-3">
                                 <div className="text-sm font-medium">{t("comment", { defaultValue: "Comment" })}</div>
-                                <div className="text-sm text-muted-foreground italic">"{preRegistration.comment}"</div>
+                                <div className="text-sm text-muted-foreground italic">&ldquo;{preRegistration.comment}&rdquo;</div>
                             </div>
                         </div>
                     )}

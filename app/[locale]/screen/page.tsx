@@ -46,7 +46,7 @@ export default function ScreenPage() {
             <Card
               key={unit.id}
               className="cursor-pointer hover:shadow-lg transition-shadow border-primary/20 hover:border-primary"
-              onClick={() => router.push(`/screen/${unit.id}` as any)}
+              onClick={() => router.push(`/screen/${unit.id}` as `/screen/${string}`)}
             >
               <CardHeader>
                 <CardTitle className="text-xl text-center">{unit.name}</CardTitle>

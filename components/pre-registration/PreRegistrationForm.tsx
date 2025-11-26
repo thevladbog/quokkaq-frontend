@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
-import { preRegistrationsApi, unitsApi, PreRegistration } from '@/lib/api';
+import { preRegistrationsApi, unitsApi, PreRegistration, Service } from '@/lib/api';
 
 interface PreRegistrationFormProps {
     unitId: string;
@@ -34,29 +34,29 @@ export function PreRegistrationForm({ unitId, initialData, onSuccess, onCancel }
     const [comment, setComment] = useState(initialData?.comment || '');
 
     // Helper function to get localized service name with hierarchy
-    const getLocalizedServiceName = (service: any, servicesList?: any[]) => {
+    const getLocalizedServiceName = (service: Service, servicesList?: Service[]) => {
         if (!service) return '';
 
         const allServices = servicesList || services || [];
 
-        const getName = (s: any) => {
+        const getName = (s: Service) => {
             if (locale === 'ru' && s.nameRu) return s.nameRu;
             if (locale === 'en' && s.nameEn) return s.nameEn;
             return s.name;
         };
 
         // Build hierarchy path
-        const buildPath = (s: any): string[] => {
+        const buildPath = (s: Service): string[] => {
             const path: string[] = [];
-            let current = s;
+            let current: Service | null = s;
 
             while (current) {
                 path.unshift(getName(current));
                 // Try to get parent from parent field or find by parentId
                 if (current.parent) {
-                    current = current.parent;
+                    current = current.parent ?? null;
                 } else if (current.parentId && allServices.length > 0) {
-                    current = allServices.find((srv: any) => srv.id === current.parentId);
+                    current = allServices.find((srv: Service) => srv.id === current?.parentId) ?? null;
                 } else {
                     current = null;
                 }
@@ -83,14 +83,22 @@ export function PreRegistrationForm({ unitId, initialData, onSuccess, onCancel }
     });
 
     // Clear time when date changes (unless it's the initial load with data)
-    useEffect(() => {
-        if (date && date !== initialData?.date) {
+    const handleDateChange = (newDate: string) => {
+        setDate(newDate);
+        if (newDate && newDate !== initialData?.date) {
             setTime('');
         }
-    }, [date, initialData]);
+    };
 
     const createMutation = useMutation({
-        mutationFn: (data: any) => preRegistrationsApi.create(unitId, data),
+        mutationFn: (data: {
+            serviceId: string;
+            date: string;
+            time: string;
+            customerName: string;
+            customerPhone: string;
+            comment?: string;
+        }) => preRegistrationsApi.create(unitId, data),
         onSuccess: () => {
             toast.success(t('create_success'));
             queryClient.invalidateQueries({ queryKey: ['pre-registrations', unitId] });
@@ -100,7 +108,14 @@ export function PreRegistrationForm({ unitId, initialData, onSuccess, onCancel }
     });
 
     const updateMutation = useMutation({
-        mutationFn: (data: any) => preRegistrationsApi.update(unitId, initialData!.id, data),
+        mutationFn: (data: {
+            serviceId: string;
+            date: string;
+            time: string;
+            customerName: string;
+            customerPhone: string;
+            comment?: string;
+        }) => preRegistrationsApi.update(unitId, initialData!.id, data),
         onSuccess: () => {
             toast.success(t('update_success'));
             queryClient.invalidateQueries({ queryKey: ['pre-registrations', unitId] });
@@ -152,7 +167,7 @@ export function PreRegistrationForm({ unitId, initialData, onSuccess, onCancel }
                     <Label htmlFor="date">{t('date')}</Label>
                     <DatePicker
                         value={date}
-                        onChange={setDate}
+                        onChange={handleDateChange}
                         placeholder={t('date')}
                         disabled={!serviceId}
                     />

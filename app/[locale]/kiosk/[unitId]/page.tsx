@@ -91,12 +91,7 @@ export default function UnitKioskPage() {
     };
   }, [autoCloseTimerId]);
 
-  // Reset grid to main level when ticket modal opens
-  useEffect(() => {
-    if (isTicketModalOpen) {
-      setSelectedServicePath([]);
-    }
-  }, [isTicketModalOpen]);
+
 
   // Get current services based on selected path
   // unitServicesTree contains flat list of services, so we need to filter by parentId
@@ -126,6 +121,7 @@ export default function UnitKioskPage() {
         });
         setCreatedTicket(ticket);
         setIsTicketModalOpen(true);
+        setSelectedServicePath([]);
 
         // Reset countdown and start timer
         setCountdown(5);
@@ -407,7 +403,6 @@ export default function UnitKioskPage() {
                         alt={service.name}
                         fill
                         className="object-contain opacity-20"
-                        unoptimized
                       />
                     </div>
                   )}
@@ -566,6 +561,7 @@ export default function UnitKioskPage() {
         onSuccess={(ticket) => {
           setCreatedTicket(ticket);
           setIsTicketModalOpen(true);
+          setSelectedServicePath([]);
           // Start auto-close timer logic (copied from handleServiceSelection)
           setCountdown(5);
           if (autoCloseTimerId) {

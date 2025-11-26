@@ -43,7 +43,7 @@ export default function StaffSelectionPage() {
     if (user) {
       loadUnits();
     }
-  }, [user?.units]);
+  }, [user, user?.units]);
 
   // Auto-select unit if only one
   useEffect(() => {

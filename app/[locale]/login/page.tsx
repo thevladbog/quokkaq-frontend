@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { useRouter, Link } from '@/src/i18n/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
-  const pathname = usePathname();
   const loginMutation = useLogin();
   const { login } = useAuthContext(); // Get the login function from auth context
 
