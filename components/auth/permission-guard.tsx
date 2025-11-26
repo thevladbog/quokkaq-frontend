@@ -1,7 +1,6 @@
 'use client';
 
 import { useAuth } from '@/lib/hooks';
-import { usePathname, useRouter } from '@/src/i18n/navigation';
 import { useEffect, useState } from 'react';
 import { authApi } from '@/lib/api';
 
@@ -22,7 +21,6 @@ export default function PermissionGuard({
 }: PermissionGuardProps) {
     const { isAuthenticated, token } = useAuth();
     const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-    const router = useRouter();
 
     useEffect(() => {
         const checkAccess = async () => {

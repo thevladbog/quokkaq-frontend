@@ -16,7 +16,10 @@ import { CountersList } from '@/components/admin/units/counters-list';
 import { AdScreenSettings } from '@/components/admin/units/ad-screen-settings';
 import { UnitServicesManager } from '@/components/admin/units/unit-services-manager';
 import { KioskSettings } from '@/components/admin/units/kiosk-settings';
+import { SlotConfiguration } from '@/components/admin/units/slot-configuration';
+
 import ServiceGridEditor from '@/components/ServiceGridEditor';
+
 import { useRouter } from '@/src/i18n/navigation';
 import PermissionGuard from '@/components/auth/permission-guard';
 import { toast } from 'sonner';
@@ -82,6 +85,9 @@ export default function UnitPage({ params }: UnitPageProps) {
                     <PermissionGuard permissions={['UNIT_SETTINGS_MANAGE']} unitId={unitId}>
                         <TabsTrigger value="general">{t('units.general_settings')}</TabsTrigger>
                     </PermissionGuard>
+                    <PermissionGuard permissions={['UNIT_SETTINGS_MANAGE']} unitId={unitId}>
+                        <TabsTrigger value="slots">{t('slots.title', { defaultValue: 'Slot Configuration' })}</TabsTrigger>
+                    </PermissionGuard>
                     <PermissionGuard permissions={['UNIT_SERVICES_MANAGE']} unitId={unitId}>
                         <TabsTrigger value="services">{t('services.title')}</TabsTrigger>
                     </PermissionGuard>
@@ -132,6 +138,12 @@ export default function UnitPage({ params }: UnitPageProps) {
                                 </Button>
                             </CardContent>
                         </Card>
+                    </PermissionGuard>
+                </TabsContent>
+
+                <TabsContent value="slots" className="mt-6">
+                    <PermissionGuard permissions={['UNIT_SETTINGS_MANAGE']} unitId={unitId} fallback={<div>{t('access_denied')}</div>}>
+                        <SlotConfiguration unitId={unitId} />
                     </PermissionGuard>
                 </TabsContent>
 

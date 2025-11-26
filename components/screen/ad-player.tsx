@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 interface AdPlayerProps {
@@ -48,7 +49,7 @@ export function AdPlayer({ materials, duration }: AdPlayerProps) {
     return (
         <div className="w-full h-full flex items-center justify-center bg-transparent rounded-lg overflow-hidden">
             {currentMaterial.type === 'image' ? (
-                <img
+                <Image
                     key={currentMaterial.id}
                     src={currentMaterial.url}
                     alt="Advertisement"

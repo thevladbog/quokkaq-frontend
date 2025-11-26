@@ -194,6 +194,7 @@
       "grid_configuration": "Grid Configuration",
       "invitations": "Invitations",
       "templates": "Templates",
+      "pre_registrations": "Pre-registrations",
       "settings": "Settings"
     },
     "general": {
@@ -278,7 +279,85 @@
       "color_placeholder": "#ffffff",
       "header_color": "Header Color",
       "body_color": "Body Color",
-      "grid_color": "Service Grid Color"
+      "grid_color": "Service Grid Color",
+      "enable_pre_registration": "Enable Pre-registration Redemption"
+    },
+    "slots": {
+      "title": "Slot Configuration",
+      "config_saved": "Configuration saved",
+      "config_save_error": "Failed to save configuration",
+      "capacities_saved": "Capacities saved",
+      "capacities_save_error": "Failed to save capacities",
+      "configuration_title": "Slot Configuration",
+      "configuration_desc": "Set working hours and interval for appointment slots.",
+      "start_time": "Start Time",
+      "end_time": "End Time",
+      "interval_minutes": "Interval (minutes)",
+      "working_days": "Working Days",
+      "save_config": "Save Configuration",
+      "capacity_title": "Slot Capacities",
+      "capacity_desc": "Set the maximum number of appointments per slot for each service.",
+      "select_service": "Select Service",
+      "select_service_placeholder": "Select a service",
+      "save_capacities": "Save Capacities",
+      "time": "Time",
+      "generation_title": "Generate Slots",
+      "generation_desc": "Generate daily slots based on the configuration above. Existing slots in the range will be overwritten.",
+      "from_date": "From Date",
+      "to_date": "To Date",
+      "generate_btn": "Generate",
+      "generated_success": "Slots generated successfully",
+      "generated_error": "Generation failed",
+      "day_management_title": "Day Management",
+      "day_management_desc": "Manage slots for a specific day.",
+      "select_day": "Select Day",
+      "no_slots_generated": "No slots generated for this day.",
+      "mark_as_day_off": "Mark as Day Off (Holiday)",
+      "capacity_hint": "Hint: \"Total Capacity\" includes existing bookings. \"Available\" is calculated as Total - Booked. If you want to add 1 more slot to a fully booked time, increase Total Capacity by 1.",
+      "booked": "Booked",
+      "available": "Avail",
+      "day_saved": "Day schedule saved",
+      "day_save_error": "Failed to save day",
+      "save_day": "Save Day Changes",
+      "days": {
+        "Monday": "Monday",
+        "Tuesday": "Tuesday",
+        "Wednesday": "Wednesday",
+        "Thursday": "Thursday",
+        "Friday": "Friday",
+        "Saturday": "Saturday",
+        "Sunday": "Sunday"
+      }
+    },
+    "pre_registrations": {
+      "title": "Pre-registrations",
+      "create_title": "Create Pre-registration",
+      "create_desc": "Fill in the details to create a new pre-registration.",
+      "edit_title": "Edit Pre-registration",
+      "edit_desc": "Update the pre-registration details.",
+      "create_success": "Pre-registration created successfully",
+      "create_error": "Failed to create pre-registration",
+      "update_success": "Pre-registration updated successfully",
+      "update_error": "Failed to update pre-registration",
+      "service": "Service",
+      "select_service": "Select service",
+      "date": "Date",
+      "time": "Time",
+      "select_time": "Select time",
+      "no_slots": "No available slots",
+      "customer_name": "Customer Name",
+      "customer_phone": "Customer Phone",
+      "comment": "Comment",
+      "no_records": "No pre-registrations found",
+      "date_time": "Date & Time",
+      "code": "Code",
+      "client": "Client",
+      "status": {
+        "title": "Status",
+        "created": "Created",
+        "ticket_issued": "Ticket Issued",
+        "canceled": "Canceled"
+      }
     }
   },
   "staff": {
@@ -352,7 +431,20 @@
     "no_counters": "No counters found",
     "you": "You",
     "occupiedByYou": "Occupied by You (Continue)",
-    "occupiedUnknown": "Occupied"
+    "occupiedUnknown": "Occupied",
+    "pre_registration": {
+      "badge": "PRE",
+      "title": "Pre-registration",
+      "details_title": "Pre-registration Details",
+      "details_description": "Information about the pre-registered appointment.",
+      "customer_name": "Customer Name",
+      "customer_phone": "Phone",
+      "code": "Code",
+      "date": "Date",
+      "time": "Time",
+      "comment": "Comment",
+      "close": "Close"
+    }
   },
   "kiosk": {
     "title": "Welcome to QuokkaQ",
@@ -438,6 +530,18 @@
     "lock_screen": {
       "kiosk_locked": "Kiosk Locked",
       "contact_admin": "This kiosk is currently locked. Please contact an administrator."
+    },
+    "pre_registration": {
+      "button": "I have a code",
+      "enter_code": "Enter Code",
+      "invalid_code": "Invalid code. Please try again.",
+      "cancel": "Cancel",
+      "submit": "Submit",
+      "errors": {
+        "not_found": "Incorrect number or date has not arrived yet",
+        "too_early": "Time has not arrived yet, you can enter the number 30 minutes before start",
+        "too_late": "Too late to redeem ticket"
+      }
     }
   },
   "screen": {
@@ -461,7 +565,11 @@
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
-    "retry": "Retry"
+    "retry": "Retry",
+    "create": "Create",
+    "save": "Save",
+    "cancel": "Cancel",
+    "actions": "Actions"
   },
   "general": {
     "delete": "Delete",
@@ -576,7 +684,10 @@
     "errorEOD": "Failed to execute End of Day",
     "processing": "Processing...",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "pre_registration": {
+      "badge": "Запись"
+    }
   },
   "invitations": {
     "title": "Invitations",
@@ -678,5 +789,40 @@
     "success": "Administrator created successfully! Redirecting...",
     "error": "Setup failed",
     "passwords_dont_match": "Passwords do not match"
+  },
+  "pageTitles": {
+    "home": "QuokkaQ - Queue Management System",
+    "login": "Login - QuokkaQ",
+    "register": "Registration - QuokkaQ",
+    "forgotPassword": "Forgot Password - QuokkaQ",
+    "resetPassword": "Reset Password - QuokkaQ",
+    "setup": "System Setup - QuokkaQ",
+    "admin": {
+      "dashboard": "Admin Panel - QuokkaQ",
+      "units": "Units - Admin - QuokkaQ",
+      "unitDetails": "Unit Settings - QuokkaQ",
+      "gridConfiguration": "Grid Configuration - Admin - QuokkaQ",
+      "invitations": "Invitations - Admin - QuokkaQ",
+      "templates": "Message Templates - Admin - QuokkaQ",
+      "preRegistrations": "Pre-registrations - Admin - QuokkaQ",
+      "users": "Users & Roles - Admin - QuokkaQ"
+    },
+    "staff": {
+      "selection": "Staff Panel - QuokkaQ",
+      "counter": "Staff Panel - QuokkaQ"
+    },
+    "supervisor": {
+      "selection": "Supervisor Panel - QuokkaQ",
+      "dashboard": "Shift Management - QuokkaQ"
+    },
+    "kiosk": {
+      "selection": "Kiosk - QuokkaQ",
+      "service": "Kiosk - QuokkaQ"
+    },
+    "screen": {
+      "selection": "Public Screen - QuokkaQ",
+      "display": "Queue Display - QuokkaQ"
+    },
+    "ticket": "Your Ticket - QuokkaQ"
   }
 }

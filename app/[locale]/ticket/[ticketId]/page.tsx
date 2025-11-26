@@ -12,6 +12,7 @@ import { getLocalizedName } from '@/lib/utils';
 import { useUnit } from '@/lib/hooks';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 
 export default function TicketPage() {
   const [ticket, setTicket] = useState<Ticket | null>(null);
@@ -89,7 +90,7 @@ export default function TicketPage() {
         {/* Logo (top) */}
         {unit?.config?.kiosk?.logoUrl && (
           <div className="mb-4 h-16 w-auto">
-            <img
+            <Image
               src={unit.config.kiosk.logoUrl}
               alt="Logo"
               className="h-full w-auto object-contain"

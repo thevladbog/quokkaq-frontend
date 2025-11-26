@@ -110,6 +110,15 @@ const TicketModelSchema = z.object({
     id: z.string(),
     name: z.string(),
   }).nullable().optional(),
+  preRegistration: z.object({
+    id: z.string(),
+    customerName: z.string(),
+    customerPhone: z.string(),
+    code: z.string(),
+    date: z.string(),
+    time: z.string(),
+    comment: z.string().optional(),
+  }).nullable().optional(),
 });
 
 const BookingModelSchema = z.object({
@@ -184,6 +193,7 @@ export interface KioskConfig {
   printerType?: string;
   isPrintEnabled?: boolean;
   feedbackUrl?: string;
+  isPreRegistrationEnabled?: boolean;
 }
 
 export interface UnitConfig {
@@ -644,5 +654,143 @@ export const shiftApi = {
       sequencesReset: number;
     }>(`/units/${unitId}/shift/eod`, {
       method: 'POST',
+    }),
+};
+
+// Slot API functions
+export const slotsApi = {
+  getConfig: (unitId: string) =>
+    apiRequest<{
+      startTime: string;
+      endTime: string;
+      intervalMinutes: number;
+      workingDays: string[];
+    }>(`/units/${unitId}/slots/config`, {}),
+
+  updateConfig: (unitId: string, config: {
+    startTime: string;
+    endTime: string;
+    intervalMinutes: number;
+    workingDays: string[];
+  }) =>
+    apiRequest<{
+      startTime: string;
+      endTime: string;
+      intervalMinutes: number;
+      workingDays: string[];
+    }>(`/units/${unitId}/slots/config`, {
+      method: 'PUT',
+      body: JSON.stringify(config),
+    }),
+
+  getCapacities: (unitId: string) =>
+    apiRequest<Array<{
+      dayOfWeek: string;
+      startTime: string;
+      serviceId: string;
+      capacity: number;
+    }>>(`/units/${unitId}/slots/capacities`, {}),
+
+  updateCapacities: (unitId: string, capacities: Array<{
+    dayOfWeek: string;
+    startTime: string;
+    serviceId: string;
+    capacity: number;
+  }>) =>
+    apiRequest<unknown>(`/units/${unitId}/slots/capacities`, {
+      method: 'PUT',
+      body: JSON.stringify(capacities),
+    }),
+
+  generate: (unitId: string, from: string, to: string) =>
+    apiRequest<void>(`/units/${unitId}/slots/generate`, {
+      method: 'POST',
+      body: JSON.stringify({ from, to }),
+    }),
+
+  getDay: (unitId: string, date: string) =>
+    apiRequest<{
+      id: string;
+      unitId: string;
+      date: string;
+      isDayOff: boolean;
+      slots: Array<{
+        id: string;
+        dayScheduleId: string;
+        serviceId: string;
+        startTime: string;
+        capacity: number;
+        booked: number;
+      }>;
+    } | null>(`/units/${unitId}/slots/day/${date}`, {}),
+
+  updateDay: (unitId: string, date: string, data: {
+    isDayOff: boolean;
+    slots: Array<{
+      serviceId: string;
+      startTime: string;
+      capacity: number;
+    }>;
+  }) =>
+    apiRequest<void>(`/units/${unitId}/slots/day/${date}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+};
+
+// Pre-registration API functions
+export interface PreRegistration {
+  id: string;
+  unitId: string;
+  serviceId: string;
+  date: string;
+  time: string;
+  code: string;
+  customerName: string;
+  customerPhone: string;
+  comment?: string;
+  status: string;
+  ticketId?: string;
+  createdAt: string;
+  service?: Service;
+  ticket?: Ticket;
+}
+
+export const preRegistrationsApi = {
+  getByUnitId: (unitId: string) =>
+    apiRequest<PreRegistration[]>(`/units/${unitId}/pre-registrations`, {}),
+
+  create: (unitId: string, data: {
+    serviceId: string;
+    date: string;
+    time: string;
+    customerName: string;
+    customerPhone: string;
+    comment?: string;
+  }) =>
+    apiRequest<PreRegistration>(`/units/${unitId}/pre-registrations`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (unitId: string, id: string, data: Partial<PreRegistration>) =>
+    apiRequest<PreRegistration>(`/units/${unitId}/pre-registrations/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  getAvailableSlots: (unitId: string, serviceId: string, date: string) =>
+    apiRequest<string[]>(`/units/${unitId}/pre-registrations/slots?serviceId=${serviceId}&date=${date}`, {}),
+
+  validate: (unitId: string, code: string) =>
+    apiRequest<PreRegistration>(`/units/${unitId}/pre-registrations/validate`, {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    }),
+
+  redeem: (unitId: string, code: string) =>
+    apiRequest<{ success: boolean; ticket?: Ticket; message?: string }>(`/units/${unitId}/pre-registrations/redeem`, {
+      method: 'POST',
+      body: JSON.stringify({ code }),
     }),
 };

@@ -1,9 +1,10 @@
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '../../src/i18n/routing';
 import ConditionalLayout from '@/components/ConditionalLayout';
 import { AuthProvider } from '@/contexts/AuthContext';
+import type { Metadata } from 'next';
 
 import SystemStatusGuard from '@/components/SystemStatusGuard';
 
@@ -11,6 +12,15 @@ type Props = {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'pageTitles' });
+
+  return {
+    title: t('home'),
+  };
+}
 
 export default async function LocaleLayout({ children, params }: Props) {
   // Ensure that the incoming `locale` is valid

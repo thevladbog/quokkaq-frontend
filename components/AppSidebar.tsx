@@ -27,6 +27,7 @@ import {
   ClipboardList,
   Mail,
   MessageSquare,
+  CalendarClock,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -127,6 +128,14 @@ const AppSidebar = () => {
       active: isActive('/supervisor') || isActiveSub('/supervisor'),
       roles: ['admin', 'supervisor'], // Admins and supervisors can access supervisor panel
       requiredPermission: 'ACCESS_SUPERVISOR_PANEL',
+    },
+    {
+      icon: CalendarClock,
+      label: tAdmin('navigation.pre_registrations', { defaultValue: 'Pre-registrations' }),
+      href: '/admin/pre-registrations',
+      active: isActive('/admin/pre-registrations') || isActiveSub('/admin/pre-registrations'),
+      roles: ['admin', 'staff', 'supervisor'],
+      // requiredPermission: 'ACCESS_STAFF_PANEL', // Or maybe a specific one? Let's stick to roles for now or reuse staff/supervisor
     },
   ].filter(item => {
     if (!isAuthenticated) return false;

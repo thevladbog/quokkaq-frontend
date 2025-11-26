@@ -14,6 +14,7 @@ import { ImageIcon, Video, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { LogoUpload } from '@/components/ui/logo-upload';
 import { useUpdateUnit } from '@/lib/hooks';
+import Image from 'next/image';
 
 interface AdScreenConfig {
     width?: number;
@@ -281,7 +282,7 @@ export function AdScreenSettings({ unitId, currentConfig }: AdScreenSettingsProp
                                 >
                                     <div className="aspect-video bg-muted rounded flex items-center justify-center overflow-hidden">
                                         {material.type === 'image' ? (
-                                            <img
+                                            <Image
                                                 src={material.url}
                                                 alt="Material"
                                                 className="w-full h-full object-cover"

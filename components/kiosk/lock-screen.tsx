@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Lock } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Button } from '@/components/ui/button';
 
 interface LockScreenProps {
     isLocked: boolean;

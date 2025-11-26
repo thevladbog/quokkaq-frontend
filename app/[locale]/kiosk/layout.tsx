@@ -1,35 +1,25 @@
-'use client';
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import KioskThemeWrapper from '@/components/KioskThemeWrapper';
 
-import { ReactNode, useEffect, useRef } from 'react';
-import { useTheme } from 'next-themes';
+type Props = {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+};
 
-export default function KioskLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const { theme, setTheme } = useTheme();
-  const previousTheme = useRef<string | undefined>(undefined);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'pageTitles' });
 
-  useEffect(() => {
-    // Store the current theme before overriding
-    previousTheme.current = theme;
+  return {
+    title: t('kiosk.selection'),
+  };
+}
 
-    // Force light theme in kiosk
-    setTheme('light');
-
-    // Restore previous theme when leaving kiosk
-    return () => {
-      if (previousTheme.current) {
-        setTheme(previousTheme.current);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+export default function KioskLayout({ children }: Props) {
   return (
-    <div className="light">
+    <KioskThemeWrapper>
       {children}
-    </div>
+    </KioskThemeWrapper>
   );
 }
