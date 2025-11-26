@@ -133,7 +133,7 @@ export default function InviteDialog({ open, onOpenChange, onSuccess }: InviteDi
                 const error = await response.json();
                 toast.error(error.message || t('error_sending'));
             }
-        } catch (error) {
+        } catch (_error) {
             toast.error(t('error_sending'));
         } finally {
             setLoading(false);

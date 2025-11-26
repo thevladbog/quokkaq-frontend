@@ -216,7 +216,6 @@ export function UnitServicesManager({ unitId }: UnitServicesManagerProps) {
 
 function ServiceForm({
     editingService,
-    isCreating,
     selectedUnitId,
     services,
     onCancel,

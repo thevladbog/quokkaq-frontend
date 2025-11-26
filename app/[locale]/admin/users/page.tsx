@@ -186,7 +186,7 @@ export default function UsersPage() {
 
     // Regular users see only units where they have UNIT_USERS_MANAGE permission
     const allowedUnitIds = Object.entries(currentUser?.permissions || {})
-      .filter(([_, perms]) => (perms as string[]).includes('UNIT_USERS_MANAGE'))
+      .filter(([_some, perms]) => (perms as string[]).includes('UNIT_USERS_MANAGE'))
       .map(([unitId]) => unitId);
 
     return (units as Unit[]).filter(u => allowedUnitIds.includes(u.id));

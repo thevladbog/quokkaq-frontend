@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter, Link } from '@/src/i18n/navigation';
+import { Link } from '@/src/i18n/navigation';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,6 @@ import { toast } from 'sonner';
 
 function ResetPasswordContent() {
     const t = useTranslations('resetPassword');
-    const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get('token');
 

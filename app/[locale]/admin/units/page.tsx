@@ -21,7 +21,7 @@ import {
 import { useRouter } from '@/src/i18n/navigation';
 
 export default function UnitsIndexPage() {
-    const { data: units = [], isLoading, error } = useUnits();
+    const { data: units = [], isLoading } = useUnits();
     const createUnitMutation = useCreateUnit();
     const t = useTranslations('admin');
     const router = useRouter();

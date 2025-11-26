@@ -48,7 +48,7 @@ export function PreRegRedemptionModal({ isOpen, onClose, unitId, onSuccess }: Pr
                 }
             }
         },
-        onError: (_err: any) => {
+        onError: () => {
             // Handle network errors or unexpected 500s
             setError(t('invalid_code', { defaultValue: 'Invalid code. Please try again.' }));
         },

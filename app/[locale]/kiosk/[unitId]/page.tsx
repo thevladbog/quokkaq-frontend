@@ -11,7 +11,6 @@ import dynamic from 'next/dynamic';
 const QRCode = dynamic(() => import('react-qr-code'), { ssr: false });
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useParams } from 'next/navigation';
 import { useRouter } from '@/src/i18n/navigation';
@@ -28,7 +27,7 @@ export default function UnitKioskPage() {
   const params = useParams() as { unitId?: string };
   const unitId = params.unitId;
   const [selectedServicePath, setSelectedServicePath] = useState<Service[]>([]);
-  const [message, setMessage] = useState('');
+  const [_message, setMessage] = useState('');
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const { data: unitServicesTree, isLoading: servicesLoading } = useUnitServicesTree(unitId!);
   const createTicketMutation = useCreateTicketInUnit();
@@ -50,7 +49,7 @@ export default function UnitKioskPage() {
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
-  const [clockClicks, setClockClicks] = useState(0);
+  const [_clockClicks, setClockClicks] = useState(0);
   const [isRedemptionModalOpen, setIsRedemptionModalOpen] = useState(false);
 
   // Custom colors from config
@@ -295,10 +294,11 @@ export default function UnitKioskPage() {
 
           {unit?.config?.kiosk?.logoUrl && (
             <div className="relative h-12 md:h-16 w-auto">
-              <img
+              <Image
                 src={unit.config.kiosk.logoUrl}
                 alt="Logo"
                 className="h-full w-auto object-contain"
+                unoptimized
               />
             </div>
           )}
@@ -403,6 +403,7 @@ export default function UnitKioskPage() {
                         alt={service.name}
                         fill
                         className="object-contain opacity-20"
+                        unoptimized
                       />
                     </div>
                   )}
@@ -468,10 +469,11 @@ export default function UnitKioskPage() {
             {/* Logo (top) */}
             {unit?.config?.kiosk?.logoUrl && (
               <div className="mb-4 h-16 w-auto">
-                <img
+                <Image
                   src={unit.config.kiosk.logoUrl}
                   alt="Logo"
                   className="h-full w-auto object-contain"
+                  unoptimized
                 />
               </div>
             )}

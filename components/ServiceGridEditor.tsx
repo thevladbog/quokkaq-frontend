@@ -905,7 +905,7 @@ const ServiceGridEditor: React.FC<ServiceGridEditorProps> = ({ unitId }) => {
   const [services, setServices] = useState<ServiceWithPosition[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   // Initialize loading state based on whether we have an ID
-  const [isLoading, setIsLoading] = useState(!!(unitId || selectedUnitId));
+  const [_isLoading, setIsLoading] = useState(!!(unitId || selectedUnitId));
 
   const updateServiceMutation = useUpdateService();
 
