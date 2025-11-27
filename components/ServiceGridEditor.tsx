@@ -951,11 +951,10 @@ const UnitList: React.FC<{
         {units.map((unit) => (
           <div
             key={unit.id}
-            className={`hover:bg-accent cursor-pointer rounded border p-3 ${
-              selectedUnitId === unit.id
+            className={`hover:bg-accent cursor-pointer rounded border p-3 ${selectedUnitId === unit.id
                 ? 'bg-accent border-primary'
                 : 'bg-background'
-            }`}
+              }`}
             onClick={() => onSelect(unit.id)}
           >
             <div className='flex items-center'>
@@ -996,7 +995,7 @@ const ServiceGridEditor: React.FC<ServiceGridEditorProps> = ({ unitId }) => {
   const [services, setServices] = useState<ServiceWithPosition[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   // Initialize loading state based on whether we have an ID
-  const [_isLoading, setIsLoading] = useState(!!(unitId || selectedUnitId));
+  const [, setIsLoading] = useState(!!(unitId || selectedUnitId));
 
   const updateServiceMutation = useUpdateService();
 
@@ -1044,12 +1043,12 @@ const ServiceGridEditor: React.FC<ServiceGridEditorProps> = ({ unitId }) => {
                     : null,
                 gridRowSpan:
                   service.gridRowSpan !== undefined &&
-                  service.gridRowSpan !== null
+                    service.gridRowSpan !== null
                     ? Number(service.gridRowSpan)
                     : 1,
                 gridColSpan:
                   service.gridColSpan !== undefined &&
-                  service.gridColSpan !== null
+                    service.gridColSpan !== null
                     ? Number(service.gridColSpan)
                     : 1,
                 children: service.children || [],

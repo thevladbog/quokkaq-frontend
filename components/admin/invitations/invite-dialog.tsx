@@ -101,7 +101,14 @@ export default function InviteDialog({
     setLoading(true);
 
     try {
-      const body: any = { email };
+      const body: {
+        email: string;
+        templateId?: string;
+        customSubject?: string;
+        customContent?: string;
+        targetRoles?: string[];
+        targetUnits?: { unitId: string; permissions: string[] }[];
+      } = { email };
 
       if (selectedTemplate) {
         body.templateId = selectedTemplate;
@@ -139,7 +146,7 @@ export default function InviteDialog({
         const error = await response.json();
         toast.error(error.message || t('error_sending'));
       }
-    } catch (_error) {
+    } catch {
       toast.error(t('error_sending'));
     } finally {
       setLoading(false);
@@ -247,7 +254,7 @@ export default function InviteDialog({
                 })}
               </Label>
               <div className='max-h-60 space-y-4 overflow-y-auto rounded-md border p-4'>
-                {units.map((unit: any) => (
+                {units.map((unit) => (
                   <div key={unit.id} className='space-y-2'>
                     <div className='flex items-center space-x-2'>
                       <Checkbox

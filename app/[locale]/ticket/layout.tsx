@@ -15,6 +15,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function TicketLayout({ children, params }: Props) {
+export default function TicketLayout({ children }: Props) {
   return <>{children}</>;
 }

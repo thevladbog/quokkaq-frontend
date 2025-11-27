@@ -33,7 +33,7 @@ export default function UnitKioskPage() {
   const params = useParams() as { unitId?: string };
   const unitId = params.unitId;
   const [selectedServicePath, setSelectedServicePath] = useState<Service[]>([]);
-  const [_message, setMessage] = useState('');
+  const [, setMessage] = useState('');
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const { data: unitServicesTree, isLoading: servicesLoading } =
     useUnitServicesTree(unitId!);
@@ -57,7 +57,7 @@ export default function UnitKioskPage() {
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
-  const [_clockClicks, setClockClicks] = useState(0);
+  const [, setClockClicks] = useState(0);
   const [isRedemptionModalOpen, setIsRedemptionModalOpen] = useState(false);
 
   // Custom colors from config
@@ -279,11 +279,11 @@ export default function UnitKioskPage() {
             <h2 className='mb-2 text-2xl font-bold'>
               {selectedServicePath.length > 0
                 ? getLocalizedName(
-                    selectedServicePath[selectedServicePath.length - 1].name,
-                    selectedServicePath[selectedServicePath.length - 1].nameRu,
-                    selectedServicePath[selectedServicePath.length - 1].nameEn,
-                    locale
-                  )
+                  selectedServicePath[selectedServicePath.length - 1].name,
+                  selectedServicePath[selectedServicePath.length - 1].nameRu,
+                  selectedServicePath[selectedServicePath.length - 1].nameEn,
+                  locale
+                )
                 : t('selectService')}
             </h2>
             <p className='text-muted-foreground mb-4'>

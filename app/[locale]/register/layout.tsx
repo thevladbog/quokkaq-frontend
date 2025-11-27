@@ -15,6 +15,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function RegisterLayout({ children, params }: Props) {
+export default function RegisterLayout({ children }: Props) {
   return <>{children}</>;
 }

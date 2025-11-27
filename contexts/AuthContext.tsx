@@ -8,7 +8,7 @@ import {
   ReactNode,
   useCallback
 } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { authApi, User } from '../lib/api';
 
 interface AuthContextType {
@@ -27,7 +27,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
 
   // Only run API calls on client side
@@ -50,19 +49,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
-      // Redirect to the localized login page if we can determine the locale
-      // Try to extract locale from current path (e.g., /en/..., /ru/...) or fallback to default
-      // Determine locale from current pathname (mounted above Intl provider)
+      // Extract locale from current path and redirect to login
       const localeFromPath = pathname?.split('/')?.[1] || 'en';
       const knownLocales = ['en', 'ru'];
       const loginPath = knownLocales.includes(localeFromPath)
         ? `/${localeFromPath}/login`
         : '/login';
-      router.push(loginPath as any);
-      // Note: In a more sophisticated setup, we might want to use the router
-      // to navigate to the localized login page, but this approach maintains consistency
+      // Use window.location to avoid router type issues and intl context dependency
+      window.location.href = loginPath;
     }
-  }, [pathname, router]);
+  }, [pathname]);
 
   const login = useCallback((newToken: string) => {
     if (typeof window !== 'undefined') {

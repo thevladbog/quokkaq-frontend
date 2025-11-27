@@ -201,7 +201,7 @@ export default function UsersPage() {
 
     // Regular users see only units where they have UNIT_USERS_MANAGE permission
     const allowedUnitIds = Object.entries(currentUser?.permissions || {})
-      .filter(([_some, perms]) =>
+      .filter(([, perms]) =>
         (perms as string[]).includes('UNIT_USERS_MANAGE')
       )
       .map(([unitId]) => unitId);
@@ -248,11 +248,10 @@ export default function UsersPage() {
                 users.map((user) => (
                   <div
                     key={user.id}
-                    className={`cursor-pointer rounded border p-3 ${
-                      selectedUser === user.id
+                    className={`cursor-pointer rounded border p-3 ${selectedUser === user.id
                         ? 'bg-accent border-primary'
                         : 'hover:bg-accent'
-                    }`}
+                      }`}
                     onClick={() => setSelectedUser(user.id)}
                   >
                     <div className='font-medium'>{user.name}</div>
@@ -350,8 +349,8 @@ export default function UsersPage() {
                               <div className='text-muted-foreground text-xs'>
                                 {uu.permissions && uu.permissions.length > 0
                                   ? uu.permissions
-                                      .map((p) => getPermissionLabel(p))
-                                      .join(', ')
+                                    .map((p) => getPermissionLabel(p))
+                                    .join(', ')
                                   : t('users.no_permissions_assigned')}
                               </div>
                             </div>
@@ -423,10 +422,10 @@ export default function UsersPage() {
                                 .toLowerCase()
                                 .includes(searchTerm.toLowerCase())
                           ).length === 0 && (
-                          <p className='text-muted-foreground italic'>
-                            {t('users.no_available_units')}
-                          </p>
-                        )}
+                            <p className='text-muted-foreground italic'>
+                              {t('users.no_available_units')}
+                            </p>
+                          )}
                       </>
                     )}
                   </div>

@@ -82,7 +82,7 @@ export default function TemplateDialog({
         const error = await response.json();
         toast.error(error.message || t('error_saving'));
       }
-    } catch (error) {
+    } catch {
       toast.error(t('error_saving'));
     } finally {
       setLoading(false);

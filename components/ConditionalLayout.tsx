@@ -116,7 +116,7 @@ const ConditionalLayout = ({ children }: ConditionalLayoutProps) => {
                   <h1 className='text-destructive text-2xl font-bold'>
                     Access Denied
                   </h1>
-                  <p>You don't have permission to view this page.</p>
+                  <p>You don&apos;t have permission to view this page.</p>
                 </div>
               </div>
             }
