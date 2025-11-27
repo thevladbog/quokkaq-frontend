@@ -836,7 +836,7 @@ export const slotsApi = {
       startTime: string;
       endTime: string;
       intervalMinutes: number;
-      workingDays: string[];
+      days: string[];
     }>(`/units/${unitId}/slots/config`, {}),
 
   updateConfig: (
@@ -845,14 +845,14 @@ export const slotsApi = {
       startTime: string;
       endTime: string;
       intervalMinutes: number;
-      workingDays: string[];
+      days: string[];
     }
   ) =>
     apiRequest<{
       startTime: string;
       endTime: string;
       intervalMinutes: number;
-      workingDays: string[];
+      days: string[];
     }>(`/units/${unitId}/slots/config`, {
       method: 'PUT',
       body: JSON.stringify(config)

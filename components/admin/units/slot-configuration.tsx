@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -40,8 +40,8 @@ interface SlotConfigurationProps {
 interface SlotConfig {
   startTime: string;
   endTime: string;
-  intervalMinutes: number;
-  workingDays: string[];
+  intervalMinutes: number; // The backend sends 'interval' but frontend maps it? Let's check api.ts
+  days: string[]; // Backend sends 'days'
 }
 
 interface SlotCapacity {
@@ -124,7 +124,7 @@ export function SlotConfiguration({ unitId }: SlotConfigurationProps) {
 
   // --- Queries ---
 
-  const { data: services } = useQuery({
+  const { data: services, isLoading: isServicesLoading } = useQuery({
     queryKey: ['unit-services', unitId],
     queryFn: () => unitsApi.getServices(unitId)
   });
@@ -139,7 +139,7 @@ export function SlotConfiguration({ unitId }: SlotConfigurationProps) {
     queryFn: () => slotsApi.getCapacities(unitId)
   });
 
-  if (isConfigLoading || isCapacitiesLoading) {
+  if (isConfigLoading || isCapacitiesLoading || isServicesLoading) {
     return (
       <div className='flex justify-center p-8'>
         <Loader2 className='animate-spin' />
@@ -191,7 +191,7 @@ function SlotConfigForm({
   const [endTime, setEndTime] = useState(initialConfig.endTime || '17:00');
   const [interval, setInterval] = useState(initialConfig.intervalMinutes || 30);
   const [workingDays, setWorkingDays] = useState<string[]>(
-    initialConfig.workingDays || [
+    initialConfig.days || [
       'Monday',
       'Tuesday',
       'Wednesday',
@@ -205,6 +205,7 @@ function SlotConfigForm({
     onSuccess: () => {
       toast.success(t('config_saved'));
       queryClient.invalidateQueries({ queryKey: ['slot-config', unitId] });
+      queryClient.invalidateQueries({ queryKey: ['slot-capacities', unitId] });
     },
     onError: () => toast.error(t('config_save_error'))
   });
@@ -214,7 +215,7 @@ function SlotConfigForm({
       startTime,
       endTime,
       intervalMinutes: interval,
-      workingDays
+      days: workingDays
     });
   };
 
@@ -320,6 +321,8 @@ function SlotCapacitiesForm({
     return firstService?.id || services[0]?.id || '';
   });
 
+
+
   const [localCapacities, setLocalCapacities] = useState<
     Record<string, number>
   >(() => {
@@ -329,6 +332,15 @@ function SlotCapacitiesForm({
     });
     return map;
   });
+
+  // Sync localCapacities when initialCapacities changes (e.g., after refetch)
+  useEffect(() => {
+    const map: Record<string, number> = {};
+    initialCapacities.forEach((c) => {
+      map[`${c.dayOfWeek}-${c.startTime}-${c.serviceId}`] = c.capacity;
+    });
+    setLocalCapacities(map);
+  }, [initialCapacities]);
 
   const updateCapacitiesMutation = useMutation({
     mutationFn: (data: SlotCapacity[]) =>
@@ -342,11 +354,12 @@ function SlotCapacitiesForm({
 
   const timeSlots = useMemo(() => {
     const slots: string[] = [];
-    if (!config?.startTime || !config?.endTime || !config?.intervalMinutes)
-      return slots;
+    const startTime = config?.startTime || '09:00';
+    const endTime = config?.endTime || '17:00';
+    const interval = config?.intervalMinutes || 30;
 
-    const [startH, startM] = config.startTime.split(':').map(Number);
-    const [endH, endM] = config.endTime.split(':').map(Number);
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
 
     let current = startH * 60 + startM;
     const end = endH * 60 + endM;
@@ -357,7 +370,7 @@ function SlotCapacitiesForm({
       slots.push(
         `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
       );
-      current += config.intervalMinutes;
+      current += interval;
     }
 
     return slots;
@@ -377,9 +390,15 @@ function SlotCapacitiesForm({
   const handleCapacitiesSave = () => {
     // Build updates for the currently selected service
     const currentServiceUpdates: SlotCapacity[] = [];
-    const workingDays = config?.workingDays || [];
+    const workingDays = config?.days || [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday'
+    ];
 
-    workingDays.forEach((day) => {
+    workingDays.forEach((day: string) => {
       timeSlots.forEach((time) => {
         const key = `${day}-${time}-${selectedServiceId}`;
         const capacity = localCapacities[key] ?? 0;
@@ -414,7 +433,13 @@ function SlotCapacitiesForm({
     updateCapacitiesMutation.mutate(allUpdates);
   };
 
-  const workingDays = config?.workingDays || [];
+  const workingDays = config?.days || [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday'
+  ];
 
   return (
     <Card>
@@ -477,7 +502,7 @@ function SlotCapacitiesForm({
                   <th className='sticky left-0 z-10 bg-gray-50 px-4 py-3 dark:bg-gray-800'>
                     {t('time', { defaultValue: 'Time' })}
                   </th>
-                  {workingDays.map((day) => (
+                  {workingDays.map((day: string) => (
                     <th
                       key={day}
                       className='min-w-[100px] px-4 py-3 text-center'
@@ -496,7 +521,7 @@ function SlotCapacitiesForm({
                     <td className='sticky left-0 z-10 bg-white px-4 py-2 font-medium dark:bg-gray-900'>
                       {time}
                     </td>
-                    {workingDays.map((day) => {
+                    {workingDays.map((day: string) => {
                       const key = `${day}-${time}-${selectedServiceId}`;
                       const capacity = localCapacities[key] ?? 0;
                       const hasCapacity = capacity > 0;
@@ -508,7 +533,7 @@ function SlotCapacitiesForm({
                             className={cn(
                               'h-8 text-center transition-colors',
                               hasCapacity &&
-                                'border-blue-200 bg-blue-50 font-medium dark:border-blue-900 dark:bg-blue-950/30'
+                              'border-blue-200 bg-blue-50 font-medium dark:border-blue-900 dark:bg-blue-950/30'
                             )}
                             value={capacity}
                             onChange={(e) =>
@@ -553,8 +578,8 @@ function GenerationSection({
     onError: (err: Error) =>
       toast.error(
         t('generated_error', { defaultValue: 'Generation failed' }) +
-          ': ' +
-          err.message
+        ': ' +
+        err.message
       )
   });
 
@@ -714,8 +739,8 @@ function DayEditor({
     onError: (err: Error) =>
       toast.error(
         t('day_save_error', { defaultValue: 'Failed to save day' }) +
-          ': ' +
-          err.message
+        ': ' +
+        err.message
       )
   });
 
