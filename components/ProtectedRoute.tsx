@@ -38,13 +38,15 @@ export default function ProtectedRoute({
 
     // Check roles if specified
     if (allowedRoles && allowedRoles.length > 0) {
-      const hasRole = allowedRoles.some(role => user.roles?.includes(role));
+      const hasRole = allowedRoles.some((role) => user.roles?.includes(role));
 
       // If user doesn't have role, check for permission if specified
       if (!hasRole) {
         if (requiredPermission && user.permissions) {
           // Check if user has the permission in ANY unit
-          const hasPermission = (Object.values(user.permissions) as string[][]).some((perms: string[]) => perms.includes(requiredPermission));
+          const hasPermission = (
+            Object.values(user.permissions) as string[][]
+          ).some((perms: string[]) => perms.includes(requiredPermission));
           if (!hasPermission) {
             hasAccess = false;
           }
@@ -56,7 +58,9 @@ export default function ProtectedRoute({
     } else if (requiredPermission) {
       // Only permission specified
       if (user.permissions) {
-        const hasPermission = (Object.values(user.permissions) as string[][]).some((perms: string[]) => perms.includes(requiredPermission));
+        const hasPermission = (
+          Object.values(user.permissions) as string[][]
+        ).some((perms: string[]) => perms.includes(requiredPermission));
         if (!hasPermission) {
           hasAccess = false;
         }
@@ -72,13 +76,15 @@ export default function ProtectedRoute({
 
   // Show loading state while checking auth status
   if (isLoading) {
-    return loadingComponent || (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center">
-          <Spinner className="h-12 w-12 mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading...</p>
+    return (
+      loadingComponent || (
+        <div className='flex min-h-screen items-center justify-center p-4'>
+          <div className='text-center'>
+            <Spinner className='text-primary mx-auto mb-4 h-12 w-12' />
+            <p className='text-muted-foreground'>Loading...</p>
+          </div>
         </div>
-      </div>
+      )
     );
   }
 

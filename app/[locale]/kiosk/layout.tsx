@@ -12,14 +12,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: 'pageTitles' });
 
   return {
-    title: t('kiosk.selection'),
+    title: t('kiosk.selection')
   };
 }
 
 export default function KioskLayout({ children }: Props) {
-  return (
-    <KioskThemeWrapper>
-      {children}
-    </KioskThemeWrapper>
-  );
+  return <KioskThemeWrapper>{children}</KioskThemeWrapper>;
 }

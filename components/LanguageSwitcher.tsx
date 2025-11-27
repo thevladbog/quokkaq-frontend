@@ -13,13 +13,14 @@ export default function LanguageSwitcher() {
   };
 
   return (
-    <div className="flex space-x-2">
+    <div className='flex space-x-2'>
       <button
         onClick={() => switchLocale(locale === 'en' ? 'ru' : 'en')}
-        className={`px-3 py-1 rounded-md text-sm font-medium ${locale === 'en'
+        className={`rounded-md px-3 py-1 text-sm font-medium ${
+          locale === 'en'
             ? 'bg-primary text-primary-foreground'
             : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-          }`}
+        }`}
       >
         {locale === 'en' ? 'RU' : 'EN'}
       </button>

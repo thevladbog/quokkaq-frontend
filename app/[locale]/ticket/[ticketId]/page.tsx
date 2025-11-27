@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -48,10 +48,20 @@ export default function TicketPage() {
             socketClient.connect(t_data.unitId);
             socketClient.onTicketCalled((data) => {
               if (data?.ticket?.id === t_data.id) {
-                const counterName = data.ticket?.counter?.name || (data.ticket as { counterId?: string })?.counterId || 'the counter';
-                toast.success(t('your_ticket_called', { number: t_data.queueNumber, counter: counterName }));
+                const counterName =
+                  data.ticket?.counter?.name ||
+                  (data.ticket as { counterId?: string })?.counterId ||
+                  'the counter';
+                toast.success(
+                  t('your_ticket_called', {
+                    number: t_data.queueNumber,
+                    counter: counterName
+                  })
+                );
                 // Update ticket status in real-time
-                setTicket(prev => prev ? { ...prev, status: 'called' } : prev);
+                setTicket((prev) =>
+                  prev ? { ...prev, status: 'called' } : prev
+                );
               }
             });
           } catch (e) {
@@ -74,73 +84,98 @@ export default function TicketPage() {
   }, [ticketId, t]);
 
   if (error) {
-    return <div className="min-h-screen flex items-center justify-center">{error}</div>;
+    return (
+      <div className='flex min-h-screen items-center justify-center'>
+        {error}
+      </div>
+    );
   }
 
   if (!ticket) {
     return (
-      <div className="min-h-screen flex items-center justify-center">{t('loading')}</div>
+      <div className='flex min-h-screen items-center justify-center'>
+        {t('loading')}
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md flex flex-col items-center pt-6">
+    <div className='bg-background flex min-h-screen items-center justify-center p-4'>
+      <Card className='flex w-full max-w-md flex-col items-center pt-6'>
         {/* Logo (top) */}
         {unit?.config?.kiosk?.logoUrl && (
-          <div className="mb-4 h-16 w-auto">
+          <div className='mb-4 h-16 w-auto'>
             <Image
               src={unit.config.kiosk.logoUrl}
-              alt="Logo"
-              className="h-full w-auto object-contain"
+              alt='Logo'
+              className='h-full w-auto object-contain'
             />
           </div>
         )}
 
         {/* Header text (if set) */}
         {unit?.config?.kiosk?.headerText && (
-          <div className="mb-2 text-lg font-medium text-center px-4">{unit.config.kiosk.headerText}</div>
+          <div className='mb-2 px-4 text-center text-lg font-medium'>
+            {unit.config.kiosk.headerText}
+          </div>
         )}
 
-        <CardHeader className="text-center pb-2 w-full">
-          <CardTitle className="text-xl text-center w-full flex justify-center">
-            {service ? getLocalizedName(service.name, service.nameRu, service.nameEn, locale) : `Ticket`}
+        <CardHeader className='w-full pb-2 text-center'>
+          <CardTitle className='flex w-full justify-center text-center text-xl'>
+            {service
+              ? getLocalizedName(
+                  service.name,
+                  service.nameRu,
+                  service.nameEn,
+                  locale
+                )
+              : `Ticket`}
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="text-center w-full flex flex-col items-center pb-8">
-          <div className="text-7xl font-bold mb-2 leading-none">{ticket.queueNumber}</div>
+        <CardContent className='flex w-full flex-col items-center pb-8 text-center'>
+          <div className='mb-2 text-7xl leading-none font-bold'>
+            {ticket.queueNumber}
+          </div>
 
-          <Badge variant={ticket.status === 'called' ? 'default' : 'secondary'} className="mb-4 text-lg px-4 py-1">
+          <Badge
+            variant={ticket.status === 'called' ? 'default' : 'secondary'}
+            className='mb-4 px-4 py-1 text-lg'
+          >
             {tStaff(ticket.status)}
           </Badge>
 
           {/* Show Footer if configured */}
           {unit?.config?.kiosk?.footerText && (
             <>
-              <Separator className="my-4 w-full" />
-              <div className="text-sm text-muted-foreground text-center">{unit.config.kiosk.footerText}</div>
+              <Separator className='my-4 w-full' />
+              <div className='text-muted-foreground text-center text-sm'>
+                {unit.config.kiosk.footerText}
+              </div>
             </>
           )}
 
           {/* Rate Visit Button */}
           {unit?.config?.kiosk?.feedbackUrl && (
             <>
-              <Separator className="my-4 w-full" />
+              <Separator className='my-4 w-full' />
               <Button
-                variant="outline"
-                className="w-full"
+                variant='outline'
+                className='w-full'
                 onClick={() => setShowFeedback(!showFeedback)}
               >
                 {t('rate_visit')}
               </Button>
 
               {showFeedback && (
-                <div className="w-full mt-4 h-96 border rounded-md overflow-hidden">
+                <div className='mt-4 h-96 w-full overflow-hidden rounded-md border'>
                   <iframe
-                    src={unit.config.kiosk.feedbackUrl.replace('{{ticketId}}', ticket.id)}
-                    className="w-full h-full"
-                    title="Feedback Form"
+                    src={unit.config.kiosk.feedbackUrl.replace(
+                      '{{ticketId}}',
+                      ticket.id
+                    )}
+                    className='h-full w-full'
+                    title='Feedback Form'
                   />
                 </div>
               )}

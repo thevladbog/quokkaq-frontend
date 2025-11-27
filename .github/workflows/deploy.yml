@@ -28,7 +28,7 @@ jobs:
         run: |
           COMMIT_MSG=$(git log -1 --pretty=%B)
           echo "Commit message: $COMMIT_MSG"
-          
+
           if [[ "$COMMIT_MSG" == *"[major]"* ]] || [[ "$COMMIT_MSG" == *"BREAKING CHANGE"* ]]; then
             echo "type=major" >> $GITHUB_OUTPUT
           elif [[ "$COMMIT_MSG" == *"[minor]"* ]] || [[ "$COMMIT_MSG" == *"feat:"* ]]; then
@@ -42,14 +42,14 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
+
           TYPE=${{ steps.version_type.outputs.type }}
           echo "Bumping version type: $TYPE"
-          
+
           NEW_VERSION=$(node scripts/bump-version.js $TYPE)
           echo "New version: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          
+
           git add package.json
           git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
           git tag v$NEW_VERSION
@@ -90,8 +90,8 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
-          source: "docker-compose.prod.yml"
-          target: "~/quokkaq-frontend/"
+          source: 'docker-compose.prod.yml'
+          target: '~/quokkaq-frontend/'
           debug: true
 
       - name: Deploy to VM
@@ -107,18 +107,18 @@ jobs:
             export YC_REGISTRY_ID=${{ secrets.YC_REGISTRY_ID }}
             export VERSION=${{ needs.version-bump.outputs.new_version }}
             export ACME_EMAIL=${{ secrets.ACME_EMAIL }}
-            
+
             echo "Deploying frontend version $VERSION"
-            
+
             echo "$YC_SA_JSON_CREDENTIALS" | docker login --username json_key --password-stdin cr.yandex
-            
+
             docker pull cr.yandex/$YC_REGISTRY_ID/quokkaq-frontend:$VERSION
-            
+
             cd ~/quokkaq-frontend
-            
+
             # Ensure traefik-public network exists
             docker network create traefik-public || true
-            
+
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            
+
             docker image prune -f

@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
 
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,8 +20,8 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  DialogTitle
+} from '@/components/ui/dialog';
 import {
   useUsers,
   useUnits,
@@ -54,7 +60,7 @@ const AVAILABLE_PERMISSIONS = [
   { id: 'ACCESS_STAFF_PANEL', label: 'Access Staff Panel' },
   { id: 'ACCESS_KIOSK', label: 'Access Kiosk' },
   { id: 'ACCESS_TICKET_SCREEN', label: 'Access Ticket Screen' },
-  { id: 'ACCESS_SUPERVISOR_PANEL', label: 'Access Supervisor Panel' },
+  { id: 'ACCESS_SUPERVISOR_PANEL', label: 'Access Supervisor Panel' }
 ];
 
 export default function UsersPage() {
@@ -70,14 +76,19 @@ export default function UsersPage() {
     return () => clearTimeout(timer);
   }, [userSearchTerm]);
 
-  const { data: users = [], isLoading: usersLoading, error: usersError } = useUsers(debouncedUserSearchTerm);
+  const {
+    data: users = [],
+    isLoading: usersLoading,
+    error: usersError
+  } = useUsers(debouncedUserSearchTerm);
   const { data: units = [], isLoading: unitsLoading } = useUnits();
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [selectedUnitToAssign, setSelectedUnitToAssign] = useState<Unit | null>(null);
+  const [selectedUnitToAssign, setSelectedUnitToAssign] = useState<Unit | null>(
+    null
+  );
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
-
 
   const assignUserToUnitMutation = useAssignUserToUnit();
   const removeUserFromUnitMutation = useRemoveUserFromUnit();
@@ -93,7 +104,8 @@ export default function UsersPage() {
   const t = useTranslations('admin');
 
   // Update selectedUserUnits when userUnitsData changes
-  const selectedUserUnitIds = (userUnitsData as UserUnit[])?.map((uu) => uu.unitId) || [];
+  const selectedUserUnitIds =
+    (userUnitsData as UserUnit[])?.map((uu) => uu.unitId) || [];
 
   const openAssignDialog = (unit: Unit) => {
     setSelectedUnitToAssign(unit);
@@ -132,9 +144,9 @@ export default function UsersPage() {
   };
 
   const togglePermission = (permissionId: string) => {
-    setSelectedPermissions(prev =>
+    setSelectedPermissions((prev) =>
       prev.includes(permissionId)
-        ? prev.filter(id => id !== permissionId)
+        ? prev.filter((id) => id !== permissionId)
         : [...prev, permissionId]
     );
   };
@@ -143,7 +155,7 @@ export default function UsersPage() {
     setSelectedUnitToAssign(userUnit.unit);
     setSelectedPermissions(userUnit.permissions || []);
     setAssignDialogOpen(true);
-  }
+  };
 
   const handleToggleSystemAdmin = async (checked: boolean) => {
     if (!selectedUser) return;
@@ -153,7 +165,7 @@ export default function UsersPage() {
         userId: selectedUser,
         data: { roles }
       });
-      // Ideally we should refetch users to update the list/state locally, 
+      // Ideally we should refetch users to update the list/state locally,
       // but useUsers hook should handle invalidation if set up correctly.
       // Our useUpdateUser invalidates 'users' query, so it should be fine.
     } catch (error) {
@@ -162,16 +174,19 @@ export default function UsersPage() {
   };
 
   if (usersError) {
-    return <div className="container mx-auto p-4">{t('users.error_loading', { error: (usersError as Error).message })}</div>;
+    return (
+      <div className='container mx-auto p-4'>
+        {t('users.error_loading', { error: (usersError as Error).message })}
+      </div>
+    );
   }
 
-  const selectedUserData = users.find(user => user.id === selectedUser);
+  const selectedUserData = users.find((user) => user.id === selectedUser);
   // Roles are now transformed to string[] by Zod schema
   const isSystemAdmin = selectedUserData?.roles?.includes('admin');
 
   // Helper to get translated permission label
   const getPermissionLabel = (permissionId: string) => {
-
     return t(`users.permissions_list.${permissionId}`) || permissionId;
   };
 
@@ -186,10 +201,10 @@ export default function UsersPage() {
 
     // Regular users see only units where they have UNIT_USERS_MANAGE permission
     const allowedUnitIds = Object.entries(currentUser?.permissions || {})
-      .filter(([_, perms]) => (perms as string[]).includes('UNIT_USERS_MANAGE'))
+      .filter(([, perms]) => (perms as string[]).includes('UNIT_USERS_MANAGE'))
       .map(([unitId]) => unitId);
 
-    return (units as Unit[]).filter(u => allowedUnitIds.includes(u.id));
+    return (units as Unit[]).filter((u) => allowedUnitIds.includes(u.id));
   };
 
   const availableUnits = getAvailableUnits();
@@ -202,16 +217,16 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">{t('users.title')}</h1>
+    <div className='container mx-auto p-4'>
+      <h1 className='mb-6 text-3xl font-bold'>{t('users.title')}</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
         {/* Users List */}
-        <Card className="lg:col-span-1">
+        <Card className='lg:col-span-1'>
           <CardHeader>
             <CardTitle>{t('users.users_list')}</CardTitle>
             <CardDescription>{t('users.all_users')}</CardDescription>
-            <div className="mt-2">
+            <div className='mt-2'>
               <Input
                 placeholder={t('users.search_placeholder')}
                 value={userSearchTerm}
@@ -220,21 +235,28 @@ export default function UsersPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className='max-h-96 space-y-2 overflow-y-auto'>
               {usersLoading ? (
-                <div className="text-center py-4">{t('users.loading_users')}</div>
+                <div className='py-4 text-center'>
+                  {t('users.loading_users')}
+                </div>
               ) : users.length === 0 ? (
-                <div className="text-center py-4">{t('users.no_users')}</div>
+                <div className='py-4 text-center'>{t('users.no_users')}</div>
               ) : (
                 users.map((user) => (
                   <div
                     key={user.id}
-                    className={`p-3 rounded border cursor-pointer ${selectedUser === user.id ? 'bg-accent border-primary' : 'hover:bg-accent'
-                      }`}
+                    className={`cursor-pointer rounded border p-3 ${
+                      selectedUser === user.id
+                        ? 'bg-accent border-primary'
+                        : 'hover:bg-accent'
+                    }`}
                     onClick={() => setSelectedUser(user.id)}
                   >
-                    <div className="font-medium">{user.name}</div>
-                    <div className="text-sm text-muted-foreground">{user.email}</div>
+                    <div className='font-medium'>{user.name}</div>
+                    <div className='text-muted-foreground text-sm'>
+                      {user.email}
+                    </div>
                   </div>
                 ))
               )}
@@ -243,7 +265,7 @@ export default function UsersPage() {
         </Card>
 
         {/* User Details and Units Assignment */}
-        <Card className="lg:col-span-2">
+        <Card className='lg:col-span-2'>
           <CardHeader>
             <CardTitle>{t('users.user_details_units')}</CardTitle>
             <CardDescription>
@@ -254,13 +276,15 @@ export default function UsersPage() {
           </CardHeader>
           <CardContent>
             {selectedUser ? (
-              <div className="space-y-6">
+              <div className='space-y-6'>
                 {/* System Admin Toggle - Only visible to Admins */}
                 {currentUser?.roles?.includes('admin') && (
-                  <div className="flex items-center justify-between border p-4 rounded bg-muted/20">
+                  <div className='bg-muted/20 flex items-center justify-between rounded border p-4'>
                     <div>
-                      <h3 className="font-medium">{t('users.system_admin')}</h3>
-                      <p className="text-sm text-muted-foreground">{t('users.system_admin_desc')}</p>
+                      <h3 className='font-medium'>{t('users.system_admin')}</h3>
+                      <p className='text-muted-foreground text-sm'>
+                        {t('users.system_admin_desc')}
+                      </p>
                     </div>
                     <Switch
                       checked={!!isSystemAdmin}
@@ -271,32 +295,49 @@ export default function UsersPage() {
                 )}
 
                 <div>
-                  <h3 className="text-lg font-medium mb-2">{t('users.assigned_units')}</h3>
-                  <div className="border rounded p-4">
+                  <h3 className='mb-2 text-lg font-medium'>
+                    {t('users.assigned_units')}
+                  </h3>
+                  <div className='rounded border p-4'>
                     {userUnitsLoading ? (
                       <div>{t('users.loading_units')}</div>
                     ) : (
                       <>
                         {userUnitsData && userUnitsData.length > 0 ? (
                           (userUnitsData as UserUnit[]).map((uu) => (
-                            <div key={uu.id} className="flex flex-col p-3 border-b last:border-0">
-                              <div className="flex justify-between items-center mb-2">
-                                <span className="font-medium">{uu.unit?.name || 'Unknown Unit'} ({uu.unit?.code || '???'})</span>
-                                <div className="flex gap-2">
+                            <div
+                              key={uu.id}
+                              className='flex flex-col border-b p-3 last:border-0'
+                            >
+                              <div className='mb-2 flex items-center justify-between'>
+                                <span className='font-medium'>
+                                  {uu.unit?.name || 'Unknown Unit'} (
+                                  {uu.unit?.code || '???'})
+                                </span>
+                                <div className='flex gap-2'>
                                   {canManageUnit(uu.unitId) && (
                                     <>
                                       <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleEditPermissions(uu)}
+                                        variant='outline'
+                                        size='sm'
+                                        onClick={() =>
+                                          handleEditPermissions(uu)
+                                        }
                                       >
                                         {t('users.permissions')}
                                       </Button>
                                       <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={() => handleRemoveUnit(selectedUser, uu.unitId)}
-                                        disabled={removeUserFromUnitMutation.isPending}
+                                        variant='destructive'
+                                        size='sm'
+                                        onClick={() =>
+                                          handleRemoveUnit(
+                                            selectedUser,
+                                            uu.unitId
+                                          )
+                                        }
+                                        disabled={
+                                          removeUserFromUnitMutation.isPending
+                                        }
                                       >
                                         {t('users.remove')}
                                       </Button>
@@ -304,15 +345,19 @@ export default function UsersPage() {
                                   )}
                                 </div>
                               </div>
-                              <div className="text-xs text-muted-foreground">
+                              <div className='text-muted-foreground text-xs'>
                                 {uu.permissions && uu.permissions.length > 0
-                                  ? uu.permissions.map(p => getPermissionLabel(p)).join(', ')
+                                  ? uu.permissions
+                                      .map((p) => getPermissionLabel(p))
+                                      .join(', ')
                                   : t('users.no_permissions_assigned')}
                               </div>
                             </div>
                           ))
                         ) : (
-                          <p className="text-muted-foreground italic">{t('users.no_units_assigned')}</p>
+                          <p className='text-muted-foreground italic'>
+                            {t('users.no_units_assigned')}
+                          </p>
                         )}
                       </>
                     )}
@@ -320,31 +365,43 @@ export default function UsersPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-medium mb-2">{t('users.available_units')}</h3>
+                  <h3 className='mb-2 text-lg font-medium'>
+                    {t('users.available_units')}
+                  </h3>
                   <Input
                     placeholder={t('users.search_units')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="mb-2"
+                    className='mb-2'
                   />
-                  <div className="border rounded p-4 max-h-60 overflow-y-auto">
+                  <div className='max-h-60 overflow-y-auto rounded border p-4'>
                     {unitsLoading ? (
                       <div>{t('users.loading_units')}</div>
                     ) : (
                       <>
                         {availableUnits
-                          .filter((unit) =>
-                            !selectedUserUnitIds.includes(unit.id)
+                          .filter(
+                            (unit) => !selectedUserUnitIds.includes(unit.id)
                           )
-                          .filter((unit) =>
-                            unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            unit.code.toLowerCase().includes(searchTerm.toLowerCase())
+                          .filter(
+                            (unit) =>
+                              unit.name
+                                .toLowerCase()
+                                .includes(searchTerm.toLowerCase()) ||
+                              unit.code
+                                .toLowerCase()
+                                .includes(searchTerm.toLowerCase())
                           )
                           .map((unit) => (
-                            <div key={unit.id} className="flex justify-between items-center p-2 border-b">
-                              <span>{unit.name} ({unit.code})</span>
+                            <div
+                              key={unit.id}
+                              className='flex items-center justify-between border-b p-2'
+                            >
+                              <span>
+                                {unit.name} ({unit.code})
+                              </span>
                               <Button
-                                size="sm"
+                                size='sm'
                                 onClick={() => openAssignDialog(unit)}
                               >
                                 {t('users.assign')}
@@ -352,23 +409,29 @@ export default function UsersPage() {
                             </div>
                           ))}
                         {availableUnits
-                          .filter((unit) =>
-                            !selectedUserUnitIds.includes(unit.id)
+                          .filter(
+                            (unit) => !selectedUserUnitIds.includes(unit.id)
                           )
-                          .filter((unit) =>
-                            unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            unit.code.toLowerCase().includes(searchTerm.toLowerCase())
-                          )
-                          .length === 0 && (
-                            <p className="text-muted-foreground italic">{t('users.no_available_units')}</p>
-                          )}
+                          .filter(
+                            (unit) =>
+                              unit.name
+                                .toLowerCase()
+                                .includes(searchTerm.toLowerCase()) ||
+                              unit.code
+                                .toLowerCase()
+                                .includes(searchTerm.toLowerCase())
+                          ).length === 0 && (
+                          <p className='text-muted-foreground italic'>
+                            {t('users.no_available_units')}
+                          </p>
+                        )}
                       </>
                     )}
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className='text-muted-foreground py-8 text-center'>
                 {t('users.select_user_prompt')}
               </div>
             )}
@@ -377,31 +440,48 @@ export default function UsersPage() {
       </div>
 
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className='sm:max-w-[425px]'>
           <DialogHeader>
-            <DialogTitle>{t('users.assign_unit_title', { name: selectedUnitToAssign?.name || '' })}</DialogTitle>
-            <DialogDescription>
-              {t('users.assign_unit_desc')}
-            </DialogDescription>
+            <DialogTitle>
+              {t('users.assign_unit_title', {
+                name: selectedUnitToAssign?.name || ''
+              })}
+            </DialogTitle>
+            <DialogDescription>{t('users.assign_unit_desc')}</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-4">
+          <div className='grid gap-4 py-4'>
+            <div className='space-y-4'>
               {AVAILABLE_PERMISSIONS.map((permission) => (
-                <div key={permission.id} className="flex items-center space-x-2">
+                <div
+                  key={permission.id}
+                  className='flex items-center space-x-2'
+                >
                   <Checkbox
                     id={permission.id}
                     checked={selectedPermissions.includes(permission.id)}
                     onCheckedChange={() => togglePermission(permission.id)}
                   />
-                  <Label htmlFor={permission.id}>{getPermissionLabel(permission.id)}</Label>
+                  <Label htmlFor={permission.id}>
+                    {getPermissionLabel(permission.id)}
+                  </Label>
                 </div>
               ))}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>{t('users.cancel')}</Button>
-            <Button onClick={handleAssignUnit} disabled={assignUserToUnitMutation.isPending}>
-              {assignUserToUnitMutation.isPending ? t('users.saving') : t('users.save_permissions')}
+            <Button
+              variant='outline'
+              onClick={() => setAssignDialogOpen(false)}
+            >
+              {t('users.cancel')}
+            </Button>
+            <Button
+              onClick={handleAssignUnit}
+              disabled={assignUserToUnitMutation.isPending}
+            >
+              {assignUserToUnitMutation.isPending
+                ? t('users.saving')
+                : t('users.save_permissions')}
             </Button>
           </DialogFooter>
         </DialogContent>

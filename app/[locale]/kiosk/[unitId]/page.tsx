@@ -2,16 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 import { useUnitServicesTree, useCreateTicketInUnit } from '@/lib/hooks';
 import type { Ticket, Service } from '@/lib/api';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose
+} from '@/components/ui/dialog';
 import { ArrowLeft, Home } from 'lucide-react';
 import dynamic from 'next/dynamic';
 const QRCode = dynamic(() => import('react-qr-code'), { ssr: false });
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useParams } from 'next/navigation';
 import { useRouter } from '@/src/i18n/navigation';
@@ -28,13 +33,15 @@ export default function UnitKioskPage() {
   const params = useParams() as { unitId?: string };
   const unitId = params.unitId;
   const [selectedServicePath, setSelectedServicePath] = useState<Service[]>([]);
-  const [message, setMessage] = useState('');
+  const [, setMessage] = useState('');
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
-  const { data: unitServicesTree, isLoading: servicesLoading } = useUnitServicesTree(unitId!);
+  const { data: unitServicesTree, isLoading: servicesLoading } =
+    useUnitServicesTree(unitId!);
   const createTicketMutation = useCreateTicketInUnit();
   const [createdTicket, setCreatedTicket] = useState<Ticket | null>(null);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
-  const [autoCloseTimerId, setAutoCloseTimerId] = useState<NodeJS.Timeout | null>(null);
+  const [autoCloseTimerId, setAutoCloseTimerId] =
+    useState<NodeJS.Timeout | null>(null);
   const [countdown, setCountdown] = useState<number>(5);
   const router = useRouter();
   const locale = useLocale();
@@ -50,17 +57,24 @@ export default function UnitKioskPage() {
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
-  const [clockClicks, setClockClicks] = useState(0);
+  const [, setClockClicks] = useState(0);
   const [isRedemptionModalOpen, setIsRedemptionModalOpen] = useState(false);
 
   // Custom colors from config
-  const isCustomColorsEnabled = unit?.config?.kiosk?.isCustomColorsEnabled || false;
-  const headerColor = isCustomColorsEnabled ? (unit?.config?.kiosk?.headerColor || '#ffffff') : '#ffffff';
-  const bodyColor = isCustomColorsEnabled ? (unit?.config?.kiosk?.bodyColor || '#f3f4f6') : '#f3f4f6';
-  const serviceGridColor = isCustomColorsEnabled ? (unit?.config?.kiosk?.serviceGridColor || '#ffffff') : '#ffffff';
+  const isCustomColorsEnabled =
+    unit?.config?.kiosk?.isCustomColorsEnabled || false;
+  const headerColor = isCustomColorsEnabled
+    ? unit?.config?.kiosk?.headerColor || '#ffffff'
+    : '#ffffff';
+  const bodyColor = isCustomColorsEnabled
+    ? unit?.config?.kiosk?.bodyColor || '#f3f4f6'
+    : '#f3f4f6';
+  const serviceGridColor = isCustomColorsEnabled
+    ? unit?.config?.kiosk?.serviceGridColor || '#ffffff'
+    : '#ffffff';
 
   const handleClockClick = () => {
-    setClockClicks(prev => {
+    setClockClicks((prev) => {
       const newCount = prev + 1;
       if (newCount >= 5) {
         setIsPinModalOpen(true);
@@ -91,8 +105,6 @@ export default function UnitKioskPage() {
     };
   }, [autoCloseTimerId]);
 
-
-
   // Get current services based on selected path
   // unitServicesTree contains flat list of services, so we need to filter by parentId
   const currentServices = () => {
@@ -102,11 +114,13 @@ export default function UnitKioskPage() {
 
     if (selectedServicePath.length === 0) {
       // Top level services - services without parent (parentId is null or undefined)
-      return unitServicesTree.filter(service => !service.parentId);
+      return unitServicesTree.filter((service) => !service.parentId);
     } else {
       // Services under the currently selected service
       const lastService = selectedServicePath[selectedServicePath.length - 1];
-      return unitServicesTree.filter(service => service.parentId === lastService.id);
+      return unitServicesTree.filter(
+        (service) => service.parentId === lastService.id
+      );
     }
   };
 
@@ -117,7 +131,7 @@ export default function UnitKioskPage() {
       try {
         const ticket = await createTicketMutation.mutateAsync({
           unitId: unitId!,
-          serviceId: service.id,
+          serviceId: service.id
         });
         setCreatedTicket(ticket);
         setIsTicketModalOpen(true);
@@ -143,19 +157,28 @@ export default function UnitKioskPage() {
 
         setAutoCloseTimerId(timer);
 
-        setMessage(t('ticketCreated', {
-          defaultValue: 'Ticket created successfully!',
-          service: getLocalizedName(service.name, service.nameRu, service.nameEn, locale)
-        }));
+        setMessage(
+          t('ticketCreated', {
+            defaultValue: 'Ticket created successfully!',
+            service: getLocalizedName(
+              service.name,
+              service.nameRu,
+              service.nameEn,
+              locale
+            )
+          })
+        );
       } catch (error) {
         console.error('Failed to create ticket:', error);
-        setMessage(t('ticketCreationFailed', {
-          defaultValue: 'Failed to create ticket. Please try again.'
-        }));
+        setMessage(
+          t('ticketCreationFailed', {
+            defaultValue: 'Failed to create ticket. Please try again.'
+          })
+        );
       }
     } else {
       // This is a parent service, navigate to its children
-      setSelectedServicePath(prev => [...prev, service]);
+      setSelectedServicePath((prev) => [...prev, service]);
     }
   };
 
@@ -172,15 +195,24 @@ export default function UnitKioskPage() {
 
   if (servicesLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-background p-4" style={{ backgroundColor: bodyColor }}>
+      <div
+        className='bg-background flex min-h-screen flex-col p-4'
+        style={{ backgroundColor: bodyColor }}
+      >
         {/* Header with date/time and language/theme toggles */}
-        <div className="flex justify-between items-center mb-4 p-4 rounded-lg" style={{ backgroundColor: headerColor }}>
+        <div
+          className='mb-4 flex items-center justify-between rounded-lg p-4'
+          style={{ backgroundColor: headerColor }}
+        >
           {/* Date and Time in two rows - time first, date second */}
-          <div className="text-center">
-            <div className="text-3xl font-bold">
-              {new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+          <div className='text-center'>
+            <div className='text-3xl font-bold'>
+              {new Date().toLocaleTimeString(locale, {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
             </div>
-            <div className="text-sm mt-1">
+            <div className='mt-1 text-sm'>
               {new Date().toLocaleDateString(locale, {
                 weekday: 'long',
                 year: 'numeric',
@@ -191,15 +223,15 @@ export default function UnitKioskPage() {
           </div>
 
           {/* Language and Theme toggles on the right */}
-          <div className="flex space-x-2">
+          <div className='flex space-x-2'>
             <KioskLanguageSwitcher />
           </div>
         </div>
 
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">{t('loading')}</p>
+        <div className='flex flex-1 items-center justify-center'>
+          <div className='text-center'>
+            <div className='border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2'></div>
+            <p className='text-muted-foreground'>{t('loading')}</p>
           </div>
         </div>
       </div>
@@ -209,15 +241,24 @@ export default function UnitKioskPage() {
   // If no services are available at the current level
   if (currentServices().length === 0) {
     return (
-      <div className="min-h-screen flex flex-col bg-background p-4" style={{ backgroundColor: bodyColor }}>
+      <div
+        className='bg-background flex min-h-screen flex-col p-4'
+        style={{ backgroundColor: bodyColor }}
+      >
         {/* Header with date/time and language/theme toggles */}
-        <div className="flex justify-between items-center mb-4 p-4 rounded-lg" style={{ backgroundColor: headerColor }}>
+        <div
+          className='mb-4 flex items-center justify-between rounded-lg p-4'
+          style={{ backgroundColor: headerColor }}
+        >
           {/* Date and Time in two rows - time first, date second */}
-          <div className="text-center">
-            <div className="text-3xl font-bold">
-              {new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+          <div className='text-center'>
+            <div className='text-3xl font-bold'>
+              {new Date().toLocaleTimeString(locale, {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
             </div>
-            <div className="text-sm mt-1">
+            <div className='mt-1 text-sm'>
               {new Date().toLocaleDateString(locale, {
                 weekday: 'long',
                 year: 'numeric',
@@ -228,30 +269,32 @@ export default function UnitKioskPage() {
           </div>
 
           {/* Language and Theme toggles on the right */}
-          <div className="flex space-x-2">
+          <div className='flex space-x-2'>
             <KioskLanguageSwitcher />
           </div>
         </div>
 
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-2">
-              {selectedServicePath.length > 0 ? (
-                getLocalizedName(
-                  selectedServicePath[selectedServicePath.length - 1].name,
-                  selectedServicePath[selectedServicePath.length - 1].nameRu,
-                  selectedServicePath[selectedServicePath.length - 1].nameEn,
-                  locale
-                )
-              ) : (
-                t('selectService')
-              )}
+        <div className='flex flex-1 items-center justify-center'>
+          <div className='text-center'>
+            <h2 className='mb-2 text-2xl font-bold'>
+              {selectedServicePath.length > 0
+                ? getLocalizedName(
+                    selectedServicePath[selectedServicePath.length - 1].name,
+                    selectedServicePath[selectedServicePath.length - 1].nameRu,
+                    selectedServicePath[selectedServicePath.length - 1].nameEn,
+                    locale
+                  )
+                : t('selectService')}
             </h2>
-            <p className="text-muted-foreground mb-4">
-              {t('noServicesAvailable', { defaultValue: 'No services available at this level' })}
+            <p className='text-muted-foreground mb-4'>
+              {t('noServicesAvailable', {
+                defaultValue: 'No services available at this level'
+              })}
             </p>
             <Button onClick={handleGoBack}>
-              {selectedServicePath.length > 0 ? t('back') : t('changeLocation', { defaultValue: 'Change Location' })}
+              {selectedServicePath.length > 0
+                ? t('back')
+                : t('changeLocation', { defaultValue: 'Change Location' })}
             </Button>
           </div>
         </div>
@@ -260,15 +303,27 @@ export default function UnitKioskPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background p-4" style={{ backgroundColor: bodyColor }}>
+    <div
+      className='bg-background flex min-h-screen flex-col p-4'
+      style={{ backgroundColor: bodyColor }}
+    >
       {/* Header with date/time and language/theme toggles */}
-      <div className="flex justify-between items-center mb-4 p-4 rounded-lg shadow-sm" style={{ backgroundColor: headerColor }}>
+      <div
+        className='mb-4 flex items-center justify-between rounded-lg p-4 shadow-sm'
+        style={{ backgroundColor: headerColor }}
+      >
         {/* Date and Time in two rows - time first, date second */}
-        <div className="text-center cursor-pointer select-none" onClick={handleClockClick}>
-          <div className="text-3xl font-bold">
-            {currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
+        <div
+          className='cursor-pointer text-center select-none'
+          onClick={handleClockClick}
+        >
+          <div className='text-3xl font-bold'>
+            {currentTime.toLocaleTimeString(locale, {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
           </div>
-          <div className="text-sm mt-1">
+          <div className='mt-1 text-sm'>
             {currentTime.toLocaleDateString(locale, {
               weekday: 'long',
               year: 'numeric',
@@ -279,26 +334,27 @@ export default function UnitKioskPage() {
         </div>
 
         {/* Language toggle and Logo on the right */}
-        <div className="flex items-center gap-4 md:gap-8">
+        <div className='flex items-center gap-4 md:gap-8'>
           {unit?.config?.kiosk?.isPreRegistrationEnabled && (
             <Button
-              variant="secondary"
-              className="h-12 md:h-16 md:w-50 text-xl"
+              variant='secondary'
+              className='h-12 text-xl md:h-16 md:w-50'
               onClick={() => setIsRedemptionModalOpen(true)}
             >
               {t('pre_registration.button', { defaultValue: 'I have a code' })}
             </Button>
           )}
 
-          <KioskLanguageSwitcher className="h-12 w-12 md:h-16 md:w-16 text-xl" />
+          <KioskLanguageSwitcher className='h-12 w-12 text-xl md:h-16 md:w-16' />
           {/* ThemeToggle removed as per request */}
 
           {unit?.config?.kiosk?.logoUrl && (
-            <div className="relative h-12 md:h-16 w-auto">
+            <div className='relative h-12 w-auto md:h-16'>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={unit.config.kiosk.logoUrl}
-                alt="Logo"
-                className="h-full w-auto object-contain"
+                alt='Logo'
+                className='h-full w-auto object-contain'
               />
             </div>
           )}
@@ -306,37 +362,48 @@ export default function UnitKioskPage() {
       </div>
 
       {/* Navigation breadcrumbs and buttons */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center overflow-x-auto">
-          <span className="whitespace-nowrap text-muted-foreground mr-2">
+      <div className='mb-4 flex items-center justify-between'>
+        <div className='flex items-center overflow-x-auto'>
+          <span className='text-muted-foreground mr-2 whitespace-nowrap'>
             #
           </span>
           {selectedServicePath.length === 0 ? (
-            <span className="text-muted-foreground">
+            <span className='text-muted-foreground'>
               {t('services', { defaultValue: 'Services' })}
             </span>
           ) : (
             selectedServicePath.map((service, index) => (
-              <div key={index} className="flex items-center">
-                {index > 0 && <Separator orientation="vertical" className="mx-2 h-4" />}
-                <span className="whitespace-nowrap">
-                  {getLocalizedName(service.name, service.nameRu, service.nameEn, locale)}
+              <div key={index} className='flex items-center'>
+                {index > 0 && (
+                  <Separator orientation='vertical' className='mx-2 h-4' />
+                )}
+                <span className='whitespace-nowrap'>
+                  {getLocalizedName(
+                    service.name,
+                    service.nameRu,
+                    service.nameEn,
+                    locale
+                  )}
                 </span>
               </div>
             ))
           )}
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 ml-4">
+        <div className='ml-4 flex shrink-0 items-center gap-2'>
           {selectedServicePath.length > 1 && (
-            <Button variant="outline" size="sm" onClick={() => setSelectedServicePath([])}>
-              <Home className="mr-2 h-4 w-4" />
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => setSelectedServicePath([])}
+            >
+              <Home className='mr-2 h-4 w-4' />
               {t('home', { defaultValue: 'Home' })}
             </Button>
           )}
           {selectedServicePath.length > 0 && (
-            <Button variant="outline" size="sm" onClick={handleGoBack}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
+            <Button variant='outline' size='sm' onClick={handleGoBack}>
+              <ArrowLeft className='mr-2 h-4 w-4' />
               {t('back', { defaultValue: 'Back' })}
             </Button>
           )}
@@ -345,7 +412,7 @@ export default function UnitKioskPage() {
 
       {/* Services grid */}
       <div
-        className="flex-1 grid grid-cols-8 grid-rows-4 gap-4 h-full w-full overflow-auto bg-muted p-4 rounded-lg"
+        className='bg-muted grid h-full w-full flex-1 grid-cols-8 grid-rows-4 gap-4 overflow-auto rounded-lg p-4'
         style={{ backgroundColor: serviceGridColor }}
       >
         {/* Render services with their exact grid positions */}
@@ -360,22 +427,22 @@ export default function UnitKioskPage() {
             return (
               <div
                 key={service.id}
-                className="h-full w-full"
+                className='h-full w-full'
                 style={{
                   gridRow: `${startRow} / span ${rowSpan}`,
-                  gridColumn: `${startCol} / span ${colSpan}`,
+                  gridColumn: `${startCol} / span ${colSpan}`
                 }}
               >
                 <Card
-                  className="h-full w-full cursor-pointer transition-all hover:shadow-lg flex flex-col border-0 relative overflow-hidden"
+                  className='relative flex h-full w-full cursor-pointer flex-col overflow-hidden border-0 transition-all hover:shadow-lg'
                   onClick={() => handleServiceSelection(service)}
                   style={{
                     backgroundColor: service.backgroundColor || undefined,
-                    color: service.textColor || undefined,
+                    color: service.textColor || undefined
                   }}
                 >
-                  <CardHeader className="flex-1 flex flex-col items-center justify-center p-3 overflow-hidden min-h-0 relative z-10">
-                    <CardTitle className="text-2xl font-semibold text-center wrap-break-word px-1 line-clamp-2 shrink-0">
+                  <CardHeader className='relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden p-3'>
+                    <CardTitle className='line-clamp-2 shrink-0 px-1 text-center text-2xl font-semibold wrap-break-word'>
                       {getLocalizedName(
                         service.name,
                         service.nameRu || '',
@@ -384,9 +451,9 @@ export default function UnitKioskPage() {
                       )}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-2 pt-0 shrink-0 relative z-10">
+                  <CardContent className='relative z-10 shrink-0 p-2 pt-0'>
                     {service.description && (
-                      <p className="text-base text-center text-muted-foreground wrap-break-word px-1 line-clamp-2">
+                      <p className='text-muted-foreground line-clamp-2 px-1 text-center text-base wrap-break-word'>
                         {getLocalizedName(
                           service.description,
                           service.descriptionRu,
@@ -397,12 +464,12 @@ export default function UnitKioskPage() {
                     )}
                   </CardContent>
                   {service.imageUrl && (
-                    <div className="absolute inset-0 z-0 p-4">
-                      <Image
+                    <div className='absolute inset-0 z-0 p-4'>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
                         src={service.imageUrl}
                         alt={service.name}
-                        fill
-                        className="object-contain opacity-20"
+                        className='object-contain opacity-20'
                       />
                     </div>
                   )}
@@ -420,7 +487,7 @@ export default function UnitKioskPage() {
           const col = index % 8;
 
           // Check if this cell is already occupied by a service
-          const isOccupied = currentServices().some(service => {
+          const isOccupied = currentServices().some((service) => {
             if (service.gridRow === null || service.gridCol === null) {
               return false;
             }
@@ -439,10 +506,10 @@ export default function UnitKioskPage() {
             return (
               <div
                 key={`empty-${row}-${col}`}
-                className="opacity-0 border-0"
+                className='border-0 opacity-0'
                 style={{
                   gridRow: `${row + 1}`,
-                  gridColumn: `${col + 1}`,
+                  gridColumn: `${col + 1}`
                 }}
               />
             );
@@ -453,71 +520,89 @@ export default function UnitKioskPage() {
       </div>
 
       {/* Ticket modal */}
-      <Dialog open={isTicketModalOpen} onOpenChange={(open) => {
-        setIsTicketModalOpen(open);
-        if (!open) {
-          setCreatedTicket(null);
-          if (autoCloseTimerId) {
-            clearInterval(autoCloseTimerId);
-            setAutoCloseTimerId(null);
+      <Dialog
+        open={isTicketModalOpen}
+        onOpenChange={(open) => {
+          setIsTicketModalOpen(open);
+          if (!open) {
+            setCreatedTicket(null);
+            if (autoCloseTimerId) {
+              clearInterval(autoCloseTimerId);
+              setAutoCloseTimerId(null);
+            }
           }
-        }
-      }}>
+        }}
+      >
         {createdTicket && (
-          <DialogContent className="w-[320px] sm:w-[420px] flex flex-col items-center">
+          <DialogContent className='flex w-[320px] flex-col items-center sm:w-[420px]'>
             {/* Logo (top) */}
             {unit?.config?.kiosk?.logoUrl && (
-              <div className="mb-4 h-16 w-auto">
-                <img
-                  src={unit.config.kiosk.logoUrl}
-                  alt="Logo"
-                  className="h-full w-auto object-contain"
-                />
+              <div className='mb-4 h-16 w-auto'>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={unit.config.kiosk.logoUrl} alt='Logo' />
               </div>
             )}
 
             {/* Header text (if set) */}
             {unit?.config?.kiosk?.headerText && (
-              <div className="mb-2 text-lg font-medium text-center">{unit.config.kiosk.headerText}</div>
+              <div className='mb-2 text-center text-lg font-medium'>
+                {unit.config.kiosk.headerText}
+              </div>
             )}
 
             <DialogHeader>
-              <DialogTitle className="text-center text-xl">
+              <DialogTitle className='text-center text-xl'>
                 {getLocalizedName(
                   // If the service name might be in the ticket or use current selection fallback
-                  unitServicesTree?.find(s => s.id === createdTicket.serviceId)?.name || '',
-                  unitServicesTree?.find(s => s.id === createdTicket.serviceId)?.nameRu || '',
-                  unitServicesTree?.find(s => s.id === createdTicket.serviceId)?.nameEn || '',
+                  unitServicesTree?.find(
+                    (s) => s.id === createdTicket.serviceId
+                  )?.name || '',
+                  unitServicesTree?.find(
+                    (s) => s.id === createdTicket.serviceId
+                  )?.nameRu || '',
+                  unitServicesTree?.find(
+                    (s) => s.id === createdTicket.serviceId
+                  )?.nameEn || '',
                   locale
                 )}
               </DialogTitle>
             </DialogHeader>
 
-            <div className="text-center w-full flex flex-col items-center">
-              <div className="text-7xl font-bold mb-4 leading-none">{createdTicket.queueNumber}</div>
+            <div className='flex w-full flex-col items-center text-center'>
+              <div className='mb-4 text-7xl leading-none font-bold'>
+                {createdTicket.queueNumber}
+              </div>
 
-              <Separator className="my-4 w-full" />
+              <Separator className='my-4 w-full' />
 
-              <div className="mb-4 text-sm text-muted-foreground">
+              <div className='text-muted-foreground mb-4 text-sm'>
                 {t('ticket.scanQrCode')}
               </div>
 
-              <div className="mb-4 bg-white p-2 rounded-lg">
+              <div className='mb-4 rounded-lg bg-white p-2'>
                 {/* QR code component will be dynamically imported to avoid SSR issues */}
-                <QRCode value={`${baseAppUrl}/${locale}/ticket/${createdTicket.id}`} size={180} />
+                <QRCode
+                  value={`${baseAppUrl}/${locale}/ticket/${createdTicket.id}`}
+                  size={180}
+                />
               </div>
 
               {/* Show Footer if configured */}
               {unit?.config?.kiosk?.footerText && (
                 <>
-                  <Separator className="my-4 w-full" />
-                  <div className="text-sm text-muted-foreground text-center">{unit.config.kiosk.footerText}</div>
+                  <Separator className='my-4 w-full' />
+                  <div className='text-muted-foreground text-center text-sm'>
+                    {unit.config.kiosk.footerText}
+                  </div>
                 </>
               )}
             </div>
-            <DialogFooter className="w-full sm:justify-center">
+            <DialogFooter className='w-full sm:justify-center'>
               <DialogClose asChild>
-                <Button variant="secondary" className="w-full sm:w-auto min-w-[120px]">
+                <Button
+                  variant='secondary'
+                  className='w-full min-w-[120px] sm:w-auto'
+                >
                   {t('close')} ({countdown})
                 </Button>
               </DialogClose>

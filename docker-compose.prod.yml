@@ -6,11 +6,11 @@ services:
     environment:
       - NODE_ENV=production
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.quokkaq-frontend.rule=Host(`app.quokkaq.v-b.tech`)"
-      - "traefik.http.routers.quokkaq-frontend.entrypoints=websecure"
-      - "traefik.http.routers.quokkaq-frontend.tls.certresolver=letsencrypt"
-      - "traefik.http.services.quokkaq-frontend.loadbalancer.server.port=3000"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.quokkaq-frontend.rule=Host(`app.quokkaq.v-b.tech`)'
+      - 'traefik.http.routers.quokkaq-frontend.entrypoints=websecure'
+      - 'traefik.http.routers.quokkaq-frontend.tls.certresolver=letsencrypt'
+      - 'traefik.http.services.quokkaq-frontend.loadbalancer.server.port=3000'
     networks:
       - traefik-public
 
@@ -19,22 +19,22 @@ services:
     container_name: traefik
     restart: unless-stopped
     command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - '--api.insecure=true'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.websecure.address=:443'
+      - '--certificatesresolvers.letsencrypt.acme.httpchallenge=true'
+      - '--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web'
+      - '--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}'
+      - '--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json'
     ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
+      - '80:80'
+      - '443:443'
+      - '8080:8080'
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "traefik_letsencrypt:/letsencrypt"
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - 'traefik_letsencrypt:/letsencrypt'
     networks:
       - traefik-public
 

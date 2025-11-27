@@ -2,19 +2,19 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
 type Props = {
-    children: React.ReactNode;
-    params: Promise<{ locale: string }>;
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const { locale } = await params;
-    const t = await getTranslations({ locale, namespace: 'pageTitles' });
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'pageTitles' });
 
-    return {
-        title: t('ticket'),
-    };
+  return {
+    title: t('ticket')
+  };
 }
 
-export default function TicketLayout({ children, params }: Props) {
-    return <>{children}</>;
+export default function TicketLayout({ children }: Props) {
+  return <>{children}</>;
 }
