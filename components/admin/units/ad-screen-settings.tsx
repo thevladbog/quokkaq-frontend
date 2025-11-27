@@ -312,11 +312,14 @@ export function AdScreenSettings({
                 >
                   <div className='bg-muted flex aspect-video items-center justify-center overflow-hidden rounded'>
                     {material.type === 'image' ? (
-                      <img
-                        src={material.url}
-                        alt='Material'
-                        className='h-full w-full object-cover'
-                      />
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={material.url}
+                          alt='Material'
+                          className='h-full w-full object-cover'
+                        />
+                      </>
                     ) : (
                       <Video className='text-muted-foreground h-12 w-12' />
                     )}

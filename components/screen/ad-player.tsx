@@ -48,12 +48,15 @@ export function AdPlayer({ materials, duration }: AdPlayerProps) {
   return (
     <div className='flex h-full w-full items-center justify-center overflow-hidden rounded-lg bg-transparent'>
       {currentMaterial.type === 'image' ? (
-        <img
-          key={currentMaterial.id}
-          src={currentMaterial.url}
-          alt='Advertisement'
-          className='max-h-full max-w-full object-contain'
-        />
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            key={currentMaterial.id}
+            src={currentMaterial.url}
+            alt='Advertisement'
+            className='max-h-full max-w-full object-contain'
+          />
+        </>
       ) : (
         <video
           key={currentMaterial.id}

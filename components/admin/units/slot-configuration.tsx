@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -321,8 +321,6 @@ function SlotCapacitiesForm({
     return firstService?.id || services[0]?.id || '';
   });
 
-
-
   const [localCapacities, setLocalCapacities] = useState<
     Record<string, number>
   >(() => {
@@ -332,15 +330,6 @@ function SlotCapacitiesForm({
     });
     return map;
   });
-
-  // Sync localCapacities when initialCapacities changes (e.g., after refetch)
-  useEffect(() => {
-    const map: Record<string, number> = {};
-    initialCapacities.forEach((c) => {
-      map[`${c.dayOfWeek}-${c.startTime}-${c.serviceId}`] = c.capacity;
-    });
-    setLocalCapacities(map);
-  }, [initialCapacities]);
 
   const updateCapacitiesMutation = useMutation({
     mutationFn: (data: SlotCapacity[]) =>
@@ -533,7 +522,7 @@ function SlotCapacitiesForm({
                             className={cn(
                               'h-8 text-center transition-colors',
                               hasCapacity &&
-                              'border-blue-200 bg-blue-50 font-medium dark:border-blue-900 dark:bg-blue-950/30'
+                                'border-blue-200 bg-blue-50 font-medium dark:border-blue-900 dark:bg-blue-950/30'
                             )}
                             value={capacity}
                             onChange={(e) =>
@@ -578,8 +567,8 @@ function GenerationSection({
     onError: (err: Error) =>
       toast.error(
         t('generated_error', { defaultValue: 'Generation failed' }) +
-        ': ' +
-        err.message
+          ': ' +
+          err.message
       )
   });
 
@@ -739,8 +728,8 @@ function DayEditor({
     onError: (err: Error) =>
       toast.error(
         t('day_save_error', { defaultValue: 'Failed to save day' }) +
-        ': ' +
-        err.message
+          ': ' +
+          err.message
       )
   });
 

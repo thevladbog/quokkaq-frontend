@@ -279,11 +279,11 @@ export default function UnitKioskPage() {
             <h2 className='mb-2 text-2xl font-bold'>
               {selectedServicePath.length > 0
                 ? getLocalizedName(
-                  selectedServicePath[selectedServicePath.length - 1].name,
-                  selectedServicePath[selectedServicePath.length - 1].nameRu,
-                  selectedServicePath[selectedServicePath.length - 1].nameEn,
-                  locale
-                )
+                    selectedServicePath[selectedServicePath.length - 1].name,
+                    selectedServicePath[selectedServicePath.length - 1].nameRu,
+                    selectedServicePath[selectedServicePath.length - 1].nameEn,
+                    locale
+                  )
                 : t('selectService')}
             </h2>
             <p className='text-muted-foreground mb-4'>
@@ -350,6 +350,7 @@ export default function UnitKioskPage() {
 
           {unit?.config?.kiosk?.logoUrl && (
             <div className='relative h-12 w-auto md:h-16'>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={unit.config.kiosk.logoUrl}
                 alt='Logo'
@@ -464,6 +465,7 @@ export default function UnitKioskPage() {
                   </CardContent>
                   {service.imageUrl && (
                     <div className='absolute inset-0 z-0 p-4'>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={service.imageUrl}
                         alt={service.name}
@@ -536,6 +538,7 @@ export default function UnitKioskPage() {
             {/* Logo (top) */}
             {unit?.config?.kiosk?.logoUrl && (
               <div className='mb-4 h-16 w-auto'>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={unit.config.kiosk.logoUrl} alt='Logo' />
               </div>
             )}

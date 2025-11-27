@@ -191,6 +191,7 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
         <div className='flex items-center gap-4'>
           {(config?.adScreen?.logoUrl || config?.logoUrl) && (
             <div className='relative h-12 w-auto md:h-16'>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={config?.adScreen?.logoUrl || config?.logoUrl || ''}
                 alt='Logo'
