@@ -22,6 +22,8 @@ interface KioskConfig {
   pin?: string;
   headerText?: string;
   footerText?: string;
+  printerConnection?: 'network' | 'system';
+  systemPrinterName?: string;
   printerIp?: string;
   printerPort?: string;
   printerType?: string;
@@ -50,6 +52,22 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
   const [pin, setPin] = useState(kioskConfig.pin || '');
   const [headerText, setHeaderText] = useState(kioskConfig.headerText || '');
   const [footerText, setFooterText] = useState(kioskConfig.footerText || '');
+  const inferConn = (): 'network' | 'system' => {
+    if (
+      kioskConfig.printerConnection === 'system' ||
+      kioskConfig.printerConnection === 'network'
+    ) {
+      return kioskConfig.printerConnection;
+    }
+    if (kioskConfig.systemPrinterName?.trim()) {
+      return 'system';
+    }
+    return 'network';
+  };
+  const [printerConnection, setPrinterConnection] = useState(inferConn);
+  const [systemPrinterName, setSystemPrinterName] = useState(
+    kioskConfig.systemPrinterName || ''
+  );
   const [printerIp, setPrinterIp] = useState(kioskConfig.printerIp || '');
   const [printerPort, setPrinterPort] = useState(
     kioskConfig.printerPort || '9100'
@@ -93,6 +111,11 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
         pin,
         headerText,
         footerText,
+        printerConnection,
+        systemPrinterName:
+          printerConnection === 'system'
+            ? systemPrinterName.trim() || undefined
+            : undefined,
         printerIp,
         printerPort,
         printerType,
@@ -298,30 +321,73 @@ export function KioskSettings({ unitId, currentConfig }: KioskSettingsProps) {
 
             {isPrintEnabled && (
               <>
-                <div className='grid grid-cols-3 gap-4'>
-                  <div className='col-span-2 space-y-2'>
-                    <Label htmlFor='printer-ip'>{t('printer_ip')}</Label>
-                    <Input
-                      id='printer-ip'
-                      value={printerIp}
-                      onChange={(e) => setPrinterIp(e.target.value)}
-                      placeholder={t('printer_ip_placeholder', {
-                        defaultValue: '192.168.1.100'
-                      })}
-                    />
+                <div className='space-y-2'>
+                  <Label>{t('printer_connection')}</Label>
+                  <div className='flex gap-4'>
+                    <Button
+                      type='button'
+                      variant={
+                        printerConnection === 'network' ? 'default' : 'outline'
+                      }
+                      onClick={() => setPrinterConnection('network')}
+                      className='flex-1'
+                    >
+                      {t('printer_connection_network')}
+                    </Button>
+                    <Button
+                      type='button'
+                      variant={
+                        printerConnection === 'system' ? 'default' : 'outline'
+                      }
+                      onClick={() => setPrinterConnection('system')}
+                      className='flex-1'
+                    >
+                      {t('printer_connection_system')}
+                    </Button>
                   </div>
-                  <div className='space-y-2'>
-                    <Label htmlFor='printer-port'>{t('printer_port')}</Label>
-                    <Input
-                      id='printer-port'
-                      value={printerPort}
-                      onChange={(e) => setPrinterPort(e.target.value)}
-                      placeholder={t('printer_port_placeholder', {
-                        defaultValue: '9100'
-                      })}
-                    />
-                  </div>
+                  <p className='text-muted-foreground text-sm'>
+                    {t('printer_connection_admin_hint')}
+                  </p>
                 </div>
+
+                {printerConnection === 'network' ? (
+                  <div className='grid grid-cols-3 gap-4'>
+                    <div className='col-span-2 space-y-2'>
+                      <Label htmlFor='printer-ip'>{t('printer_ip')}</Label>
+                      <Input
+                        id='printer-ip'
+                        value={printerIp}
+                        onChange={(e) => setPrinterIp(e.target.value)}
+                        placeholder={t('printer_ip_placeholder', {
+                          defaultValue: '192.168.1.100'
+                        })}
+                      />
+                    </div>
+                    <div className='space-y-2'>
+                      <Label htmlFor='printer-port'>{t('printer_port')}</Label>
+                      <Input
+                        id='printer-port'
+                        value={printerPort}
+                        onChange={(e) => setPrinterPort(e.target.value)}
+                        placeholder={t('printer_port_placeholder', {
+                          defaultValue: '9100'
+                        })}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className='space-y-2'>
+                    <Label htmlFor='system-printer-name'>
+                      {t('system_printer')}
+                    </Label>
+                    <Input
+                      id='system-printer-name'
+                      value={systemPrinterName}
+                      onChange={(e) => setSystemPrinterName(e.target.value)}
+                      placeholder={t('system_printer_placeholder')}
+                    />
+                  </div>
+                )}
 
                 <div className='space-y-2'>
                   <Label>{t('printer_type')}</Label>

@@ -25,7 +25,8 @@ import {
   ClipboardList,
   Mail,
   MessageSquare,
-  CalendarClock
+  CalendarClock,
+  Monitor
 } from 'lucide-react';
 import Image from 'next/image';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -87,6 +88,15 @@ const AppSidebar = () => {
       label: tAdmin('navigation.templates', { defaultValue: 'Templates' }),
       href: '/admin/templates',
       active: isActive('/admin/templates'),
+      roles: ['admin']
+    },
+    {
+      icon: Monitor,
+      label: tAdmin('navigation.desktop_terminals', {
+        defaultValue: 'Desktop terminals'
+      }),
+      href: '/admin/desktop-terminals',
+      active: isActive('/admin/desktop-terminals'),
       roles: ['admin']
     }
   ];

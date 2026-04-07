@@ -52,13 +52,17 @@ export const useUnits = () => {
 
 export const useUnit = (
   id: string,
-  options: { refetchInterval?: number } = {}
+  options: {
+    refetchInterval?: number;
+    refetchOnMount?: boolean | 'always';
+  } = {}
 ) => {
   return useQuery({
     queryKey: ['units', id],
     queryFn: () => unitsApi.getById(id),
     enabled: !!id,
-    refetchInterval: options.refetchInterval
+    refetchInterval: options.refetchInterval,
+    refetchOnMount: options.refetchOnMount
   });
 };
 

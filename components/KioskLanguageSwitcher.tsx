@@ -17,6 +17,11 @@ export default function KioskLanguageSwitcher({
   const pathname = usePathname();
 
   const switchLanguage = (newLocale: string) => {
+    try {
+      localStorage.setItem('NEXT_LOCALE', newLocale);
+    } catch {
+      /* ignore */
+    }
     router.replace(pathname, { locale: newLocale });
   };
 

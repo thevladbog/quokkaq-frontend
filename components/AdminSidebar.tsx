@@ -10,7 +10,8 @@ import {
   Grid3X3,
   Menu,
   Mail,
-  MessageSquare
+  MessageSquare,
+  Monitor
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/src/i18n/navigation';
@@ -69,6 +70,14 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
       label: t('navigation.templates', { defaultValue: 'Templates' }),
       href: '/admin/templates',
       active: isActive('/templates')
+    },
+    {
+      icon: Monitor,
+      label: t('navigation.desktop_terminals', {
+        defaultValue: 'Desktop terminals'
+      }),
+      href: '/admin/desktop-terminals',
+      active: isActive('/desktop-terminals')
     },
     {
       icon: Settings,

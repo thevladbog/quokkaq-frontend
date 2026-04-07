@@ -10,6 +10,16 @@ import {
 } from 'react';
 import { usePathname } from 'next/navigation';
 import { authApi, User } from '../lib/api';
+import { routing } from '@/src/i18n/routing';
+
+/** Kiosk uses desktop-terminal JWT; `sub` is terminal id, so GET /auth/me returns 404. */
+function isLocaleKioskPath(pathname: string | null): boolean {
+  if (!pathname) return false;
+  return routing.locales.some(
+    (loc) =>
+      pathname === `/${loc}/kiosk` || pathname.startsWith(`/${loc}/kiosk/`)
+  );
+}
 
 interface AuthContextType {
   user: User | null;
@@ -49,16 +59,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
-      // Extract locale from current path and redirect to login
-      const localeFromPath = pathname?.split('/')?.[1] || 'en';
-      const knownLocales = ['en', 'ru'];
-      const loginPath = knownLocales.includes(localeFromPath)
-        ? `/${localeFromPath}/login`
+      const segments = window.location.pathname.split('/').filter(Boolean);
+      const maybeLocale = segments[0];
+      const loginPath = routing.locales.includes(maybeLocale as 'en' | 'ru')
+        ? `/${maybeLocale}/login`
         : '/login';
-      // Use window.location to avoid router type issues and intl context dependency
       window.location.href = loginPath;
     }
-  }, [pathname]);
+  }, []);
 
   const login = useCallback((newToken: string) => {
     if (typeof window !== 'undefined') {
@@ -86,34 +94,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Fetch user data only after mounting on client and manage loading state
   useEffect(() => {
-    if (isClient) {
-      // Always set loading to true when starting the auth process
-      setIsLoading(true);
+    if (!isClient) return;
 
-      // If there's no token, we're not authenticated, finish loading
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
+    setIsLoading(true);
 
-      // If there's a token, fetch user data
-      const fetchUser = async () => {
-        try {
-          const userData = await authApi.getMe();
-          setUser(userData);
-        } catch (error) {
-          console.error('Failed to fetch user:', error);
-          // If token is invalid, perform logout to redirect and clear state
-          logout();
-        } finally {
-          // Always finish loading, whether success or error
-          setIsLoading(false);
-        }
-      };
-
-      fetchUser();
+    if (!token) {
+      setIsLoading(false);
+      return;
     }
-  }, [isClient, token, logout]);
+
+    if (isLocaleKioskPath(pathname)) {
+      setUser(null);
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchUser = async () => {
+      try {
+        const userData = await authApi.getMe();
+        setUser(userData);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+        logout();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [isClient, token, pathname, logout]);
 
   // Listen for global 'auth:logout' events (dispatched by apiRequest on 401 / refresh failure)
   useEffect(() => {

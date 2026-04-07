@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { RefreshCw } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -19,6 +20,13 @@ import { toast } from 'sonner';
 import { Lock } from 'lucide-react';
 import { LogoUpload } from '@/components/ui/logo-upload';
 import type { UnitConfig } from '@/lib/api';
+import {
+  isTauriKiosk,
+  listPrintersViaTauri,
+  printKioskJob,
+  testPrintLines,
+  type PrinterInfo
+} from '@/lib/kiosk-print';
 
 interface KioskSettingsSheetProps {
   isOpen: boolean;
@@ -91,6 +99,22 @@ function KioskSettingsForm({
   const [showFooter, setShowFooter] = useState(
     currentConfig?.kiosk?.showFooter !== false
   );
+  const inferPrinterConnection = (): 'network' | 'system' => {
+    const k = currentConfig?.kiosk;
+    if (k?.printerConnection === 'system' || k?.printerConnection === 'network') {
+      return k.printerConnection;
+    }
+    if (k?.systemPrinterName?.trim()) {
+      return 'system';
+    }
+    return 'network';
+  };
+  const [printerConnection, setPrinterConnection] = useState<
+    'network' | 'system'
+  >(inferPrinterConnection);
+  const [systemPrinterName, setSystemPrinterName] = useState(
+    currentConfig?.kiosk?.systemPrinterName || ''
+  );
   const [printerIp, setPrinterIp] = useState(
     currentConfig?.kiosk?.printerIp || ''
   );
@@ -103,6 +127,8 @@ function KioskSettingsForm({
   const [isPrintEnabled, setIsPrintEnabled] = useState(
     currentConfig?.kiosk?.isPrintEnabled !== false
   );
+  const [printers, setPrinters] = useState<PrinterInfo[]>([]);
+  const [loadingPrinters, setLoadingPrinters] = useState(false);
   const [logoUrl, setLogoUrl] = useState(currentConfig?.kiosk?.logoUrl || '');
 
   const handleSave = () => {
@@ -112,6 +138,11 @@ function KioskSettingsForm({
         ...currentConfig?.kiosk,
         showHeader,
         showFooter,
+        printerConnection,
+        systemPrinterName:
+          printerConnection === 'system'
+            ? systemPrinterName.trim() || undefined
+            : undefined,
         printerIp,
         printerPort,
         printerType,
@@ -134,9 +165,86 @@ function KioskSettingsForm({
     );
   };
 
-  const handleTestPrint = () => {
-    // In a real app, this would call an API to send a test print command
-    toast.success(t('test_print_sent') + (printerIp || 'printer'));
+  const refreshPrinters = async () => {
+    if (!isTauriKiosk()) {
+      toast.info(
+        t('test_print_desktop_only', {
+          defaultValue:
+            'Hardware print runs only in the QuokkaQ Kiosk desktop application.'
+        })
+      );
+      return;
+    }
+    setLoadingPrinters(true);
+    try {
+      const { printers: list, error } = await listPrintersViaTauri();
+      if (error) {
+        toast.error(error);
+      }
+      setPrinters(list);
+      setSystemPrinterName((prev) => {
+        if (prev.trim()) {
+          return prev;
+        }
+        const def = list.find((p) => p.isDefault)?.name ?? list[0]?.name;
+        return def ?? '';
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoadingPrinters(false);
+    }
+  };
+
+  const handleTestPrint = async () => {
+    if (!isPrintEnabled) {
+      return;
+    }
+    if (printerType === 'label') {
+      toast.info(
+        t('test_print_desktop_only', {
+          defaultValue:
+            'Label printer test from the desktop app is not implemented yet.'
+        })
+      );
+      return;
+    }
+    try {
+      let native = false;
+      if (printerConnection === 'system') {
+        if (!systemPrinterName.trim()) {
+          toast.error(t('system_printer_required'));
+          return;
+        }
+        native = await printKioskJob(
+          'system',
+          systemPrinterName.trim(),
+          testPrintLines()
+        );
+      } else {
+        if (!printerIp.trim()) {
+          toast.error(t('printer_ip'));
+          return;
+        }
+        native = await printKioskJob(
+          'tcp',
+          `${printerIp.trim()}:${printerPort.trim() || '9100'}`,
+          testPrintLines()
+        );
+      }
+      if (native) {
+        toast.success(t('test_print_sent'));
+      } else if (!isTauriKiosk()) {
+        toast.info(
+          t('test_print_desktop_only', {
+            defaultValue:
+              'Hardware print runs only in the QuokkaQ Kiosk desktop application.'
+          })
+        );
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    }
   };
 
   return (
@@ -186,29 +294,94 @@ function KioskSettingsForm({
 
         {isPrintEnabled && (
           <>
-            <div className='grid grid-cols-3 gap-4'>
-              <div className='col-span-2 space-y-2'>
-                <Label>{t('printer_ip')}</Label>
-                <Input
-                  value={printerIp}
-                  onChange={(e) => setPrinterIp(e.target.value)}
-                  placeholder='192.168.1.100'
-                />
+            <div className='space-y-2'>
+              <Label>{t('printer_connection')}</Label>
+              <div className='flex gap-4'>
+                <Button
+                  type='button'
+                  variant={
+                    printerConnection === 'network' ? 'default' : 'outline'
+                  }
+                  onClick={() => setPrinterConnection('network')}
+                  className='flex-1'
+                >
+                  {t('printer_connection_network')}
+                </Button>
+                <Button
+                  type='button'
+                  variant={
+                    printerConnection === 'system' ? 'default' : 'outline'
+                  }
+                  onClick={() => setPrinterConnection('system')}
+                  className='flex-1'
+                >
+                  {t('printer_connection_system')}
+                </Button>
               </div>
-              <div className='space-y-2'>
-                <Label>{t('printer_port')}</Label>
-                <Input
-                  value={printerPort}
-                  onChange={(e) => setPrinterPort(e.target.value)}
-                  placeholder='9100'
-                />
-              </div>
+              <p className='text-muted-foreground text-sm'>
+                {t('printer_connection_hint')}
+              </p>
             </div>
+
+            {printerConnection === 'network' ? (
+              <div className='grid grid-cols-3 gap-4'>
+                <div className='col-span-2 space-y-2'>
+                  <Label>{t('printer_ip')}</Label>
+                  <Input
+                    value={printerIp}
+                    onChange={(e) => setPrinterIp(e.target.value)}
+                    placeholder='192.168.1.100'
+                  />
+                </div>
+                <div className='space-y-2'>
+                  <Label>{t('printer_port')}</Label>
+                  <Input
+                    value={printerPort}
+                    onChange={(e) => setPrinterPort(e.target.value)}
+                    placeholder='9100'
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className='space-y-2'>
+                <Label>{t('system_printer')}</Label>
+                <div className='flex gap-2'>
+                  <Input
+                    list='kiosk-system-printer-datalist'
+                    value={systemPrinterName}
+                    onChange={(e) => setSystemPrinterName(e.target.value)}
+                    placeholder={t('system_printer_placeholder')}
+                    className='min-w-0 flex-1'
+                  />
+                  <datalist id='kiosk-system-printer-datalist'>
+                    {printers.map((p) => (
+                      <option key={p.name} value={p.name} />
+                    ))}
+                  </datalist>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='icon'
+                    onClick={() => void refreshPrinters()}
+                    disabled={loadingPrinters}
+                    title={t('refresh_printers')}
+                  >
+                    <RefreshCw
+                      className={`size-4 ${loadingPrinters ? 'animate-spin' : ''}`}
+                    />
+                  </Button>
+                </div>
+                <p className='text-muted-foreground text-xs'>
+                  {t('system_printer_hint')}
+                </p>
+              </div>
+            )}
 
             <div className='space-y-2'>
               <Label>{t('printer_type')}</Label>
               <div className='flex gap-4'>
                 <Button
+                  type='button'
                   variant={printerType === 'receipt' ? 'default' : 'outline'}
                   onClick={() => setPrinterType('receipt')}
                   className='flex-1'
@@ -216,6 +389,7 @@ function KioskSettingsForm({
                   {t('printer_type_receipt')}
                 </Button>
                 <Button
+                  type='button'
                   variant={printerType === 'label' ? 'default' : 'outline'}
                   onClick={() => setPrinterType('label')}
                   className='flex-1'

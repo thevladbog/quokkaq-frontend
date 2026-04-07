@@ -49,6 +49,11 @@ function PinCodeTitle() {
   return <>{t('enter_pin')}</>;
 }
 
+function normalizeKioskPin(value: unknown): string {
+  if (value == null) return '';
+  return String(value).trim();
+}
+
 function PinCodeForm({
   onClose,
   onSuccess,
@@ -61,6 +66,7 @@ function PinCodeForm({
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
   const t = useTranslations('kiosk.pin_modal');
+  const expectedPin = normalizeKioskPin(correctPin) || '0000';
 
   const handleNumberClick = (num: string) => {
     if (pin.length < 6) {
@@ -75,7 +81,7 @@ function PinCodeForm({
   };
 
   const handleSubmit = () => {
-    if (pin === correctPin) {
+    if (normalizeKioskPin(pin) === expectedPin) {
       onSuccess();
       onClose();
     } else {
@@ -101,6 +107,7 @@ function PinCodeForm({
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
           <Button
             key={num}
+            type='button'
             variant='outline'
             className='h-12 text-lg font-bold'
             onClick={() => handleNumberClick(num.toString())}
@@ -110,22 +117,28 @@ function PinCodeForm({
         ))}
         <div />
         <Button
+          type='button'
           variant='outline'
           className='h-12 text-lg font-bold'
           onClick={() => handleNumberClick('0')}
         >
           0
         </Button>
-        <Button variant='ghost' className='h-12' onClick={handleDelete}>
+        <Button
+          type='button'
+          variant='ghost'
+          className='h-12'
+          onClick={handleDelete}
+        >
           <Delete className='h-6 w-6' />
         </Button>
       </div>
 
       <div className='flex w-full gap-2'>
-        <Button variant='outline' className='flex-1' onClick={onClose}>
+        <Button type='button' variant='outline' className='flex-1' onClick={onClose}>
           {t('cancel')}
         </Button>
-        <Button className='flex-1' onClick={handleSubmit}>
+        <Button type='button' className='flex-1' onClick={handleSubmit}>
           {t('submit')}
         </Button>
       </div>

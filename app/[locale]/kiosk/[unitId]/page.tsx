@@ -28,6 +28,10 @@ import { PinCodeModal } from '@/components/kiosk/pin-code-modal';
 import { KioskSettingsSheet } from '@/components/kiosk/kiosk-settings-sheet';
 import { LockScreen } from '@/components/kiosk/lock-screen';
 import { PreRegRedemptionModal } from '@/components/kiosk/PreRegRedemptionModal';
+import {
+  printReceiptFromKioskConfig,
+  ticketReceiptLines
+} from '@/lib/kiosk-print';
 
 export default function UnitKioskPage() {
   const params = useParams() as { unitId?: string };
@@ -53,7 +57,28 @@ export default function UnitKioskPage() {
     return (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '');
   });
 
-  const { data: unit } = useUnit(unitId!, { refetchInterval: 120000 }); // Poll every 2 minutes
+  const { data: unit } = useUnit(unitId!, {
+    refetchInterval: 120000,
+    // Desktop WebView + React Query cache: always pick up fresh kiosk PIN / config.
+    refetchOnMount: 'always'
+  });
+  const tryPrintTicket = async (ticket: Ticket, serviceLabel: string) => {
+    const kc = unit?.config?.kiosk;
+    if (!kc || kc.isPrintEnabled === false) {
+      return;
+    }
+    try {
+      const printed = await printReceiptFromKioskConfig(
+        kc,
+        ticketReceiptLines(ticket, serviceLabel, unit?.name)
+      );
+      if (!printed) {
+        return;
+      }
+    } catch (e) {
+      console.error('Kiosk native print failed:', e);
+    }
+  };
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
@@ -156,6 +181,14 @@ export default function UnitKioskPage() {
         }, 1000);
 
         setAutoCloseTimerId(timer);
+
+        const serviceLabel = getLocalizedName(
+          service.name,
+          service.nameRu || '',
+          service.nameEn || '',
+          locale
+        );
+        void tryPrintTicket(ticket, serviceLabel);
 
         setMessage(
           t('ticketCreated', {
@@ -664,6 +697,16 @@ export default function UnitKioskPage() {
             });
           }, 1000);
           setAutoCloseTimerId(timer);
+          const svc = unitServicesTree?.find((s) => s.id === ticket.serviceId);
+          const label = svc
+            ? getLocalizedName(
+                svc.name,
+                svc.nameRu || '',
+                svc.nameEn || '',
+                locale
+              )
+            : '';
+          void tryPrintTicket(ticket, label);
         }}
       />
     </div>

@@ -204,6 +204,10 @@ export interface KioskConfig {
   pin?: string;
   headerText?: string;
   footerText?: string;
+  /** How to reach the printer from the desktop agent. */
+  printerConnection?: 'network' | 'system';
+  /** CUPS / Windows queue name when `printerConnection` is `system`. */
+  systemPrinterName?: string;
   printerIp?: string;
   printerPort?: string;
   showHeader?: boolean;
@@ -378,7 +382,16 @@ async function apiRequest<T>(
       throw new Error(`API Error: ${response.status} - ${errorData}`);
     }
 
-    const data = await response.json();
+    if (response.status === 204 || response.status === 205) {
+      return undefined as T;
+    }
+
+    const text = await response.text();
+    if (!text.trim()) {
+      return undefined as T;
+    }
+
+    const data = JSON.parse(text);
 
     // Validate data against schema if provided
     if (schema) {
@@ -502,12 +515,79 @@ export const usersApi = {
     )
 };
 
+const DesktopTerminalSchema = z.object({
+  id: z.string(),
+  unitId: z.string(),
+  name: z.string().nullable().optional(),
+  defaultLocale: z.string(),
+  kioskFullscreen: z.boolean().optional().default(false),
+  revokedAt: z.string().nullable().optional(),
+  lastSeenAt: z.string().nullable().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  unitName: z.string().optional()
+});
+
+export type DesktopTerminal = z.infer<typeof DesktopTerminalSchema>;
+
+const CreateDesktopTerminalResponseSchema = z.object({
+  terminal: DesktopTerminalSchema,
+  pairingCode: z.string()
+});
+
+export const desktopTerminalsApi = {
+  list: () =>
+    apiRequest<DesktopTerminal[]>(
+      '/desktop-terminals',
+      {},
+      z.array(DesktopTerminalSchema)
+    ),
+
+  create: (body: {
+    name?: string;
+    unitId: string;
+    defaultLocale: string;
+    kioskFullscreen?: boolean;
+  }) =>
+    apiRequest<{ terminal: DesktopTerminal; pairingCode: string }>(
+      '/desktop-terminals',
+      {
+        method: 'POST',
+        body: JSON.stringify(body)
+      },
+      CreateDesktopTerminalResponseSchema
+    ),
+
+  update: (
+    id: string,
+    body: {
+      name?: string;
+      unitId: string;
+      defaultLocale: string;
+      kioskFullscreen?: boolean;
+    }
+  ) =>
+    apiRequest<void>(`/desktop-terminals/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body)
+    }),
+
+  revoke: (id: string) =>
+    apiRequest<void>(`/desktop-terminals/${id}/revoke`, {
+      method: 'POST'
+    })
+};
+
 // Unit API functions
 export const unitsApi = {
   getAll: () => apiRequest<Unit[]>('/units', {}, z.array(UnitModelSchema)),
 
   getById: (id: string) =>
-    apiRequest<Unit>(`/units/${id}`, {}, UnitModelSchema),
+    apiRequest<Unit>(
+      `/units/${id}`,
+      { cache: 'no-store' },
+      UnitModelSchema
+    ),
 
   getServices: (unitId: string) =>
     apiRequest<Service[]>(
