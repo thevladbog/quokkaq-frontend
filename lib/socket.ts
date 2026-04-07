@@ -95,9 +95,8 @@ class SocketClient {
     };
 
     this.socket.onerror = (error) => {
-      // Only log as error if we were previously connected or if it's not a standard connection failure
-      // Most "errors" here are just connection refused which onclose handles via retry
-      logger.warn('WebSocket connection issue (will retry):', error);
+      // Connection failures also trigger onclose/retry; still log at error so production sees them.
+      logger.error('WebSocket connection issue (will retry):', error);
       this.socket?.close();
     };
   }

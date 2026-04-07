@@ -28,7 +28,7 @@ const UserModelSchema = z.object({
       });
     }),
   type: z.string().optional(),
-  permissions: z.record(z.array(z.string())).optional(),
+  permissions: z.record(z.string(), z.array(z.string())).optional(),
   units: z
     .array(
       z.object({
@@ -226,6 +226,49 @@ export interface UnitConfig {
   [key: string]: unknown;
 }
 
+/** Shape-only summary for logs — never includes raw API payload values. */
+function summarizeApiResponseForLog(data: unknown): Record<string, unknown> {
+  if (data === null) return { kind: 'null' };
+  if (data === undefined) return { kind: 'undefined' };
+  if (Array.isArray(data)) {
+    const first = data[0];
+    const nestedKeysSample =
+      first !== null && typeof first === 'object' && !Array.isArray(first)
+        ? Object.keys(first as object)
+            .slice(0, 15)
+            .sort()
+        : undefined;
+    return {
+      kind: 'array',
+      length: data.length,
+      ...(nestedKeysSample?.length ? { nestedKeysSample } : {})
+    };
+  }
+  if (typeof data === 'object') {
+    const keys = Object.keys(data as object).sort();
+    return { kind: 'object', keyCount: keys.length, keys };
+  }
+  return { kind: typeof data };
+}
+
+function summarizeZodErrorForLog(err: unknown): Record<string, unknown> {
+  if (err instanceof z.ZodError) {
+    return {
+      name: err.name,
+      message: err.message,
+      issueCount: err.issues.length,
+      issues: err.issues.slice(0, 10).map((issue) => ({
+        path: issue.path.join('.'),
+        code: issue.code
+      }))
+    };
+  }
+  if (err instanceof Error) {
+    return { name: err.name, message: err.message };
+  }
+  return { message: String(err) };
+}
+
 // Base API configuration
 const API_BASE_URL = '/api';
 
@@ -233,7 +276,7 @@ const API_BASE_URL = '/api';
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
-  schema?: z.ZodType<T, z.ZodTypeDef, unknown>
+  schema?: z.ZodType<T>
 ): Promise<T> {
   let token = null;
   let refreshToken = null;
@@ -324,7 +367,7 @@ async function apiRequest<T>(
           window.dispatchEvent(new CustomEvent('auth:logout'));
         }
       } catch (e) {
-        logger.warn('Failed to dispatch auth:logout event', e);
+        logger.error('Failed to dispatch auth:logout event', e);
       }
 
       throw new Error(`Unauthorized: ${await response.text()}`);
@@ -342,13 +385,11 @@ async function apiRequest<T>(
       try {
         return schema.parse(data);
       } catch (zodError) {
-        // Log the full response and schema mismatch to aid debugging
-        logger.error(
-          'Zod parse error while validating API response for',
+        logger.error('Zod parse error while validating API response', {
           url,
-          zodError,
-          { data }
-        );
+          zod: summarizeZodErrorForLog(zodError),
+          responseSummary: summarizeApiResponseForLog(data)
+        });
         throw zodError;
       }
     }

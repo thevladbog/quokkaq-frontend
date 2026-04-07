@@ -6,10 +6,11 @@
 
 ## Стек
 
-- Next.js 16 (App Router), React 19, TypeScript
+- Next.js 16.2+ (App Router), React 19, TypeScript 6
 - Tailwind CSS 4, shadcn/ui (Radix)
 - TanStack Query, next-intl (локали)
-- zod, framer-motion, react-dnd, react-rnd, react-qr-code
+- Zod 4, framer-motion, react-dnd, react-rnd, react-qr-code
+- Локаль и реврайты API: корневой [`proxy.ts`](proxy.ts) (next-intl; в Next 16 вместо устаревшего `middleware.ts`). ESLint держим на **v9** — совместимость с `eslint-config-next`.
 
 ## Структура
 
@@ -26,6 +27,7 @@
 ## Локальная разработка
 
 - `npm install` / `npm run dev` — порт **3000**.
+- Pull request: GitHub Actions — [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (ESLint, Prettier, Vitest, `next build`).
 - Полный стек БД/Redis/MinIO/API: `docker compose` в `quokkaq-go-backend`.
 
 ## Деплой
