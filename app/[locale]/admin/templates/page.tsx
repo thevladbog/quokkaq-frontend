@@ -59,7 +59,7 @@ export default function TemplatesPage() {
     try {
       const response = await fetch('/api/templates', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
         }
       });
       if (response.ok) {
@@ -94,7 +94,7 @@ export default function TemplatesPage() {
       const response = await fetch(`/api/templates/${templateToDelete.id}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
         }
       });
 

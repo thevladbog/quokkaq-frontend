@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { Ticket, ticketsApi, unitsApi, Material, UnitConfig } from '@/lib/api';
+import { logger } from '@/lib/logger';
 import { useUnit } from '@/lib/hooks';
 import { socketClient } from '@/lib/socket';
 import { AdPlayer } from '@/components/screen/ad-player';
@@ -50,7 +51,7 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
         setTickets(data);
         setIsLoading(false);
       } catch (error) {
-        console.error('Failed to fetch tickets:', error);
+        logger.error('Failed to fetch tickets:', error);
       }
     };
     fetchTickets();
@@ -62,7 +63,7 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
     };
 
     const handleEOD = () => {
-      console.log('EOD event received, refreshing tickets');
+      logger.log('EOD event received, refreshing tickets');
       fetchTickets();
     };
 
@@ -98,7 +99,7 @@ export function ScreenUnitClient({ unitId }: ScreenUnitClientProps) {
           setMaterials(filtered);
         }
       } catch (error) {
-        console.error('Failed to fetch materials:', error);
+        logger.error('Failed to fetch materials:', error);
       }
     };
 

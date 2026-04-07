@@ -234,7 +234,6 @@ const GridServiceOverlay: React.FC<{
   // Function to remove the service from the grid
   const handleRemoveService = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering grid clicks
-    console.log('Remove service clicked', service.id); // Debug log
 
     // Update local state which will trigger the API call through handlePropertyChange
     onChange(service.id, 'gridRow', null);

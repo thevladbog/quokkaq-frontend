@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,6 +39,7 @@ export default function TemplateDialog({
   onSuccess
 }: TemplateDialogProps) {
   const t = useTranslations('templates');
+  const pathname = usePathname();
   const [name, setName] = useState('');
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
@@ -60,6 +62,18 @@ export default function TemplateDialog({
     setLoading(true);
 
     try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        toast.error(t('error_saving'));
+        const localeFromPath = pathname?.split('/')[1] || 'en';
+        const knownLocales = ['en', 'ru'];
+        const loginPath = knownLocales.includes(localeFromPath)
+          ? `/${localeFromPath}/login`
+          : '/login';
+        window.location.href = loginPath;
+        return;
+      }
+
       const body = { name, subject, content, isDefault };
       const url = template ? `/api/templates/${template.id}` : '/api/templates';
       const method = template ? 'PATCH' : 'POST';
@@ -68,7 +82,7 @@ export default function TemplateDialog({
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(body)
       });

@@ -1,7 +1,12 @@
 import createMiddleware from 'next-intl/middleware';
+import type { NextRequest } from 'next/server';
 import { routing } from './src/i18n/routing';
 
-export default createMiddleware(routing);
+const intlMiddleware = createMiddleware(routing);
+
+export default function proxy(request: NextRequest) {
+  return intlMiddleware(request);
+}
 
 export const config = {
   // Match all pathnames except for
