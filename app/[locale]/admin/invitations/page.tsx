@@ -58,7 +58,7 @@ export default function InvitationsPage() {
     try {
       const response = await fetch('/api/invitations', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
         }
       });
       if (response.ok) {
@@ -81,7 +81,7 @@ export default function InvitationsPage() {
       const response = await fetch(`/api/invitations/${id}/resend`, {
         method: 'PATCH',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
         }
       });
 
@@ -111,7 +111,7 @@ export default function InvitationsPage() {
         {
           method: 'DELETE',
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
           }
         }
       );

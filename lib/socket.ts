@@ -1,4 +1,5 @@
 import { Ticket } from './api';
+import { logger } from './logger';
 
 const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3001';
 
@@ -36,12 +37,12 @@ class SocketClient {
     }
 
     const wsUrl = WS_BASE_URL.replace(/^http/, 'ws') + '/ws';
-    console.log('Connecting to WebSocket:', wsUrl);
+    logger.log('Connecting to WebSocket:', wsUrl);
 
     this.socket = new WebSocket(wsUrl);
 
     this.socket.onopen = () => {
-      console.log('Connected to WebSocket');
+      logger.log('Connected to WebSocket');
       if (this.reconnectTimer) {
         clearTimeout(this.reconnectTimer);
         this.reconnectTimer = null;
@@ -77,12 +78,12 @@ class SocketClient {
 
         this.dispatch(eventName, payload);
       } catch (e) {
-        console.error('Failed to parse WebSocket message:', e);
+        logger.error('Failed to parse WebSocket message:', e);
       }
     };
 
     this.socket.onclose = () => {
-      console.log('Disconnected from WebSocket');
+      logger.log('Disconnected from WebSocket');
       if (this.reconnectTimer) {
         clearTimeout(this.reconnectTimer);
         this.reconnectTimer = null;
@@ -96,7 +97,7 @@ class SocketClient {
     this.socket.onerror = (error) => {
       // Only log as error if we were previously connected or if it's not a standard connection failure
       // Most "errors" here are just connection refused which onclose handles via retry
-      console.warn('WebSocket connection issue (will retry):', error);
+      logger.warn('WebSocket connection issue (will retry):', error);
       this.socket?.close();
     };
   }

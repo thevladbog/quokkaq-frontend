@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Upload, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import { logger } from '@/lib/logger';
 
 interface ImageUploadProps {
   value?: string | null;
@@ -48,11 +49,16 @@ export function ImageUpload({
     formData.append('file', file);
 
     try {
+      const token =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('access_token')
+          : null;
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/upload`,
         {
           method: 'POST',
-          body: formData
+          body: formData,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined
         }
       );
 
@@ -64,7 +70,7 @@ export function ImageUpload({
       onChange(data.url);
       toast.success('Image uploaded successfully');
     } catch (error) {
-      console.error('Upload error:', error);
+      logger.error('Upload error:', error);
       toast.error('Failed to upload image');
     } finally {
       setIsUploading(false);

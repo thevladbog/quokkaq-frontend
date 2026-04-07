@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { logger } from './logger';
 
 // Define Zod schemas for type validation
 const UserModelSchema = z.object({
@@ -309,7 +310,7 @@ async function apiRequest<T>(
           }
         }
       } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
+        logger.error('Token refresh failed:', refreshError);
       }
 
       // If refresh failed or no refresh token, clear stored tokens
@@ -323,7 +324,7 @@ async function apiRequest<T>(
           window.dispatchEvent(new CustomEvent('auth:logout'));
         }
       } catch (e) {
-        console.warn('Failed to dispatch auth:logout event', e);
+        logger.warn('Failed to dispatch auth:logout event', e);
       }
 
       throw new Error(`Unauthorized: ${await response.text()}`);
@@ -342,7 +343,7 @@ async function apiRequest<T>(
         return schema.parse(data);
       } catch (zodError) {
         // Log the full response and schema mismatch to aid debugging
-        console.error(
+        logger.error(
           'Zod parse error while validating API response for',
           url,
           zodError,
@@ -354,7 +355,7 @@ async function apiRequest<T>(
 
     return data;
   } catch (error) {
-    console.error(`API request failed for ${url}:`, error);
+    logger.error(`API request failed for ${url}:`, error);
     throw error;
   }
 }
