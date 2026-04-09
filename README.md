@@ -1,3 +1,5 @@
+> **Archived:** This repository is archived and no longer maintained. Active development continues in the monorepo **[thevladbog/quokkaq](https://github.com/thevladbog/quokkaq)**. The frontend app now lives under [`apps/frontend`](https://github.com/thevladbog/quokkaq/tree/main/apps/frontend).
+
 # <img src="./public/quokka-logo.svg" width="64" height="64" alt="QuokkaQ Logo" style="vertical-align: middle; margin-right: 10px;"> QuokkaQ Frontend
 
 <img src="./public/logo-text.svg" alt="QuokkaQ Text Logo" width="200">
